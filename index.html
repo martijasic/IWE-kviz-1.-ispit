@@ -17,6 +17,8 @@
             --border: #334155;
             --skip-bg: #64748b;
             --skip-hover: #475569;
+            --cancel-bg: #991b1b;
+            --cancel-hover: #7f1d1d;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -99,11 +101,13 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            user-select: none; /* Sprečava označavanje teksta pri brzom klikanju */
         }
         .option-content {
             display: flex;
             align-items: center;
             width: 100%;
+            pointer-events: none; /* Omogućava da klik na bilo koji dio stavke aktivira parent li */
         }
         .option-item:hover {
             border-color: var(--primary);
@@ -112,6 +116,7 @@
             margin-right: 12px;
             transform: scale(1.2);
             cursor: pointer;
+            pointer-events: auto;
         }
         .tag {
             font-size: 0.8rem;
@@ -149,7 +154,6 @@
             color: #fff;
         }
 
-        /* Stilovi za ekran pregleda svih pitanja */
         .review-card {
             background-color: #0f172a;
             border: 1px solid var(--border);
@@ -175,6 +179,7 @@
             font-weight: 600;
         }
 
+        /* Prilagođene dimenzije tipki */
         .btn-group {
             display: flex;
             gap: 10px;
@@ -183,14 +188,22 @@
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 12px 20px;
             font-size: 1rem;
             font-weight: 600;
             border-radius: 8px;
             cursor: pointer;
-            width: 100%;
             transition: background-color 0.2s;
             margin-top: 10px;
+        }
+        .btn-main {
+            flex: 2; /* Glavna tipka "Potvrdi" zauzima dvostruko više prostora */
+            font-size: 1.1rem;
+        }
+        .btn-small {
+            flex: 1; /* Tipke Odustani i Preskoči su manje */
+            font-size: 0.9rem;
+            padding: 12px 10px;
         }
         .btn:hover {
             background-color: var(--primary-hover);
@@ -201,8 +214,15 @@
         .btn-skip:hover {
             background-color: var(--skip-hover);
         }
+        .btn-cancel {
+            background-color: var(--cancel-bg);
+        }
+        .btn-cancel:hover {
+            background-color: var(--cancel-hover);
+        }
         .btn-secondary {
             background-color: #475569;
+            width: 100%;
         }
         .btn-secondary:hover {
             background-color: #334155;
@@ -259,7 +279,7 @@
     <div id="menu-screen" class="menu-screen active-screen">
         <p style="text-align: center; color: #94a3b8; margin-bottom: 20px;">Izaberite koliko pitanja želite rješavati u ovom krugu ili pregledajte gradivo:</p>
         <div class="menu-buttons" id="menu-buttons-container"></div>
-        <button class="btn btn-secondary" onclick="openReviewAllFromMenu()">📚 Pregled svih pitanja s odgovorima</button>
+        <button class="btn btn-secondary" onclick="openReviewAllFromMenu()" style="margin-top: 15px;">📚 Pregled svih pitanja s odgovorima</button>
     </div>
 
     <!-- KVIZ EKRAN -->
@@ -277,8 +297,9 @@
         <ul class="options-list" id="options-list"></ul>
         
         <div class="btn-group" id="action-buttons">
-            <button class="btn btn-skip" id="skip-btn" onclick="skipQuestion()">Ne znam / Preskoči</button>
-            <button class="btn" id="submit-btn" onclick="checkAnswer()">Potvrdi odgovor</button>
+            <button class="btn btn-cancel btn-small" id="cancel-btn" onclick="confirmCancel()">Odustani</button>
+            <button class="btn btn-skip btn-small" id="skip-btn" onclick="skipQuestion()">Preskoči</button>
+            <button class="btn btn-main" id="submit-btn" onclick="checkAnswer()">Potvrdi</button>
         </div>
         
         <div class="feedback" id="feedback"></div>
@@ -291,7 +312,7 @@
         <p id="percentage-display"></p>
         <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
             <button class="btn btn-secondary" onclick="openReviewCurrentSession()">📝 Pregled pitanja i točnih odgovora iz ovog kruga</button>
-            <button class="btn" onclick="goToMenu()">Nazad na glavni meni</button>
+            <button class="btn" style="width: 100%;" onclick="goToMenu()">Nazad na glavni meni</button>
         </div>
     </div>
 
@@ -299,7 +320,7 @@
     <div id="review-screen" class="review-screen">
         <h2 id="review-title" style="text-align: center; margin-bottom: 20px;">Pregled pitanja</h2>
         <div id="review-container"></div>
-        <button class="btn" onclick="goToMenu()" style="margin-top: 20px;">Nazad na glavni meni</button>
+        <button class="btn" onclick="goToMenu()" style="margin-top: 20px; width: 100%;">Nazad na glavni meni</button>
     </div>
 </div>
 
@@ -437,7 +458,7 @@
     let questions = [];
     let currentIndex = 0;
     let score = 0;
-    let currentSessionQuestions = []; // Sprema pitanja aktualnog kruga za pregled na kraju
+    let currentSessionQuestions = [];
 
     function shuffle(array) {
         let currentIndex = array.length, randomIndex;
@@ -479,7 +500,7 @@
         shuffle(shuffledAll);
         
         questions = shuffledAll.slice(0, Math.min(limit, shuffledAll.length));
-        currentSessionQuestions = questions; // Pohrani za kasniji pregled
+        currentSessionQuestions = questions;
         
         currentIndex = 0;
         score = 0;
@@ -489,12 +510,16 @@
         loadQuestion();
     }
 
-    // Funkcija za prikaz svih pitanja u bazi (sa menija)
+    function confirmCancel() {
+        if (confirm("Jeste li sigurni da želite odustati od ovog kviza i vratiti se na glavni meni?")) {
+            initMenu();
+        }
+    }
+
     function openReviewAllFromMenu() {
         showReviewScreen(rawQuestions, "Pregled svih pitanja i točnih odgovora");
     }
 
-    // Funkcija za prikaz pitanja iz upravo završenog kruga (sa ekrana rezultata)
     function openReviewCurrentSession() {
         showReviewScreen(currentSessionQuestions, "Pregled pitanja i točnih odgovora iz ovog kruga");
     }
@@ -579,9 +604,12 @@
             tagSpan.id = `tag-${index}`;
             li.appendChild(tagSpan);
             
+            // Klik bilo gdje na redak prebacuje kvačicu
             li.onclick = (e) => {
-                if(e.target !== input) {
-                    input.checked = !input.checked;
+                if (!input.disabled) {
+                    if (e.target !== input) {
+                        input.checked = !input.checked;
+                    }
                 }
             };
 
@@ -594,8 +622,9 @@
         
         const actionButtons = document.getElementById('action-buttons');
         actionButtons.innerHTML = `
-            <button class="btn btn-skip" id="skip-btn" onclick="skipQuestion()">Ne znam / Preskoči</button>
-            <button class="btn" id="submit-btn" onclick="checkAnswer()">Potvrdi odgovor</button>
+            <button class="btn btn-cancel btn-small" id="cancel-btn" onclick="confirmCancel()">Odustani</button>
+            <button class="btn btn-skip btn-small" id="skip-btn" onclick="skipQuestion()">Preskoči</button>
+            <button class="btn btn-main" id="submit-btn" onclick="checkAnswer()">Potvrdi</button>
         `;
     }
 
@@ -624,7 +653,7 @@
         feedback.className = 'feedback skipped';
 
         const actionButtons = document.getElementById('action-buttons');
-        actionButtons.innerHTML = `<button class="btn" onclick="nextQuestion()">Sljedeće pitanje</button>`;
+        actionButtons.innerHTML = `<button class="btn btn-main" style="width: 100%;" onclick="nextQuestion()">Sljedeće pitanje</button>`;
     }
 
     function checkAnswer() {
@@ -632,7 +661,7 @@
         const inputs = document.querySelectorAll('input[name="quiz-option"]:checked');
         
         if (inputs.length === 0) {
-            alert("Molimo odaberite odgovor ili kliknite 'Ne znam / Preskoči'!");
+            alert("Molimo odaberite odgovor ili kliknite 'Preskoči' / 'Odustani'!");
             return;
         }
 
@@ -704,7 +733,7 @@
         }
 
         const actionButtons = document.getElementById('action-buttons');
-        actionButtons.innerHTML = `<button class="btn" onclick="nextQuestion()">Sljedeće pitanje</button>`;
+        actionButtons.innerHTML = `<button class="btn btn-main" style="width: 100%;" onclick="nextQuestion()">Sljedeće pitanje</button>`;
     }
 
     function nextQuestion() {
