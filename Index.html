@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IWE Kviz Priprema</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --border: #334155;
+            --skip-bg: #64748b;
+            --skip-hover: #475569;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 750px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        .menu-screen, .quiz-screen, .results-screen, .review-screen {
+            display: none;
+        }
+        .active-screen {
+            display: block;
+        }
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border);
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+        .question-box {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .options-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 25px 0;
+        }
+        .option-item {
+            background-color: #0f172a;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .option-content {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        .option-item:hover {
+            border-color: var(--primary);
+        }
+        .option-item input {
+            margin-right: 12px;
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+        .tag {
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+        
+        .option-item.user-correct {
+            border-color: var(--success) !important;
+            background-color: rgba(34, 197, 94, 0.15) !important;
+        }
+        .tag-user-correct {
+            background-color: var(--success);
+            color: #000;
+        }
+
+        .option-item.missed-correct {
+            border-color: var(--warning) !important;
+            background-color: rgba(245, 158, 11, 0.15) !important;
+        }
+        .tag-missed-correct {
+            background-color: var(--warning);
+            color: #000;
+        }
+
+        .option-item.user-wrong {
+            border-color: var(--error) !important;
+            background-color: rgba(239, 68, 68, 0.15) !important;
+        }
+        .tag-user-wrong {
+            background-color: var(--error);
+            color: #fff;
+        }
+
+        /* Stilovi za ekran pregleda svih pitanja */
+        .review-card {
+            background-color: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .review-q-title {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        .review-opt {
+            padding: 6px 10px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+        }
+        .review-opt.is-correct {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+            border-left: 4px solid var(--success);
+            font-weight: 600;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+        .btn-skip {
+            background-color: var(--skip-bg);
+        }
+        .btn-skip:hover {
+            background-color: var(--skip-hover);
+        }
+        .btn-secondary {
+            background-color: #475569;
+        }
+        .btn-secondary:hover {
+            background-color: #334155;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            text-align: center;
+            display: none;
+        }
+        .feedback.correct {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+        .feedback.partial {
+            background-color: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+        .feedback.incorrect {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+        .feedback.skipped {
+            background-color: rgba(100, 116, 139, 0.2);
+            color: #cbd5e1;
+            border: 1px solid #64748b;
+        }
+        .results-screen {
+            text-align: center;
+        }
+        .results-screen h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .score-display {
+            font-size: 1.5rem;
+            margin: 20px 0;
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>IWE Kviz - Priprema ispita</h1>
+    
+    <!-- GLAVNI MENI -->
+    <div id="menu-screen" class="menu-screen active-screen">
+        <p style="text-align: center; color: #94a3b8; margin-bottom: 20px;">Izaberite koliko pitanja želite rješavati u ovom krugu ili pregledajte gradivo:</p>
+        <div class="menu-buttons" id="menu-buttons-container"></div>
+        <button class="btn btn-secondary" onclick="openReviewAllFromMenu()">📚 Pregled svih pitanja s odgovorima</button>
+    </div>
+
+    <!-- KVIZ EKRAN -->
+    <div id="quiz-screen" class="quiz-screen">
+        <div class="stats">
+            <span id="question-counter">Pitanje: 1 / 30</span>
+            <span id="current-score">Bodovi: 0.00</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+        
+        <div class="question-box" id="question-text">Učitavanje pitanja...</div>
+        
+        <ul class="options-list" id="options-list"></ul>
+        
+        <div class="btn-group" id="action-buttons">
+            <button class="btn btn-skip" id="skip-btn" onclick="skipQuestion()">Ne znam / Preskoči</button>
+            <button class="btn" id="submit-btn" onclick="checkAnswer()">Potvrdi odgovor</button>
+        </div>
+        
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <!-- REZULTATI -->
+    <div id="results-screen" class="results-screen">
+        <h2>Kviz je završen!</h2>
+        <div class="score-display" id="final-score"></div>
+        <p id="percentage-display"></p>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-secondary" onclick="openReviewCurrentSession()">📝 Pregled pitanja i točnih odgovora iz ovog kruga</button>
+            <button class="btn" onclick="goToMenu()">Nazad na glavni meni</button>
+        </div>
+    </div>
+
+    <!-- PREGLED PITANJA EKRAN -->
+    <div id="review-screen" class="review-screen">
+        <h2 id="review-title" style="text-align: center; margin-bottom: 20px;">Pregled pitanja</h2>
+        <div id="review-container"></div>
+        <button class="btn" onclick="goToMenu()" style="margin-top: 20px;">Nazad na glavni meni</button>
+    </div>
+</div>
+
+<script>
+    const rawQuestions = [
+        { q: "Pri zavarivanju istosmjernom strujom više se zagrijava na:", options: ["anoda", "katoda", "obje jednako", "katoda kod TIG, a anoda kod MIG"], correct: [0] },
+        { q: "Najveći napon el.luka uz istu struju bit će kod zaštitnog plina:", options: ["Argona", "Vodika", "Dušika", "mješavine Ar/CO2"], correct: [1] },
+        { q: "REL zavarivanje elektrode s bazičnom oblogom:", options: ["nisu osjetljive na vlagu", "u pravilu se koriste na (-) polu istosmjerne struje", "dužina el. luka jednaka je polovici promjera elektrode", "obloga sadrži veću količinu CaF2 od drugih elektroda"], correct: [2, 3] },
+        { q: "Najčešći razlozi pora od N2 u zavaru pri MAG zavarivanju:", options: ["kada u boci ima do 1% N2", "prejaka struja zavarivanja", "kontaminacija sa N2 iz zraka zbog loše zaštite taline", "loša tehnika rada", "vlaga iz boce, vlaga iz radnog komada i žice", "masnoće i organske masnoće na žici i radnom komadu"], correct: [2, 3, 5] },
+        { q: "Plinski plamen (C2H2/O2) kod zavarivanja debelih limova koristi se:", options: ["desna tehnika", "lijeva tehnika", "lijeva tehnika uz primjenu debljeg dodatnog materijala", "nije bitno koja tehnika"], correct: [0] },
+        { q: "Kod EPP zavarivanja punom žicom Ø5 mm treba koristiti izvore struje sa:", options: ["padajućom karakteristikom", "ravnom karakteristikom", "ravnom ali s većom strujom zavarivanja", "mogu se obje koristiti"], correct: [0] },
+        { q: "Najveća temperatura plinskog plamena dobije se primjenom ovih gorivih plinova:", options: ["Propan/Butan", "Acetilen 3200C", "Metan", "Vodik"], correct: [1] },
+        { q: "Kod rezanja plinskim postupkom, rezljivost metala ovisi o:", options: ["temperaturi taljenja", "odnos temperature taljenja i paljenja materijala", "vrsti upotrebljivog plina", "odnosu temperature taljenja i oksida"], correct: [1, 3] },
+        { q: "Dezoksidansi pri MAG zavarivanju čelika:", options: ["Al", "Mn", "Si", "W"], correct: [0, 1, 2] },
+        { q: "Pri MIG/MAG zavarivanju Cr-Ni čelika najveća penetracija:", options: ["Ar", "Ar+3%O2", "Ar+0,5%O2", "Ar+5%O2O2+0.5%CO2"], correct: [1] },
+        { q: "Primjena mješavine Ar+18%CO2 u odnosu na CO2 kod zavarivanja običnih ugljičnih čelika", options: ["veća penetracija", "lošiji prijenos metala", "lošiji prijenos metala i veća penetracija", "bolji prijenos metala i manja penetracija"], correct: [3] },
+        { q: "Kod MAG (CO2) zavarivanja žicom Ø 1.2 mm rasponi napona luka i struje zavarivanja", options: ["120A<I<360A ; 17V<U<34V", "80A<I<300A ; 15V<U<27V", "150A<I<500A ; 17V<U<34V", "170A<I<700A ; 19V<U<34V"], correct: [0] },
+        { q: "TVRDO lemljenje je tehnologija spajanja gdje je:", options: ["tvrdoća lema veća od 90HB", "tvrdoća lema veća od 180HB", "temperatura lemljenja >250°C", "temperatura lemljenja >450°C"], correct: [3] },
+        { q: "Pri lemljenju lemova na bazi srebra, razmak između površina za lemljenje treba biti", options: ["manji od 0,01 mm", "veći od 0,5 mm", "od 0,05 - 0,2 mm", "od 0,5-1 mm"], correct: [2] },
+        { q: "Tehnologija ljepljenja", options: ["mogućnost spajanja raznorodnih materijala, je prednost ljepljenja u usporedbi s ostalim", "postizanje visokih čvrstoća spojeva prednost ljepljenja", "neznatno toplinsko djelovanje na spoj prednost ljepljenja", "otpornost na visoke temperature je glavna prednost ljepljenja"], correct: [0, 2] },
+        { q: "Vrijednost čvrstoće ljepljenog spoja kod konstrukcijskih ljepila iznosi:", options: ["do 80N/mm2 (napomena od 30-80)", "od 100-200N/mm2", "od 200-300N/mm2", ">300N/mm2"], correct: [0] },
+        { q: "Za robotsko zavarivanje Laserom povoljnije je koristiti:", options: ["Nd-YAG kruti laser", "CO2 laser", "N2 plinski laser", "nije bitna vrsta lasera"], correct: [0] },
+        { q: "Pri rezanju običnih čelika laserom - kao pomoćni plin za rezanje koristi se", options: ["Vodik (H2)", "Kisik (O2), (napomena: Dušik N2 za Aluminij)", "Acetilen (C2H2)", "Mješavina Vodik/Dušik (H2/N2)"], correct: [1] },
+        { q: "Da bi se robotska ruka mogla postaviti u neku točku potrebna su minimalno:", options: ["3 (tri) stupnja slobode", "3 (tri) stupnja slobode rotacije i 3 (tri) translacije", "5 (pet) stupnjeva rotacije", "3 (tri) stupnja rotacije i 5 (tri) translacije"], correct: [0] },
+        { q: "Najviša temperatura plinskog plamena ovisi o:", options: ["vrsti gorivog plina", "obliku sapnice", "veličini sapnice", "omjeru gorivog plina i O2"], correct: [0, 3] },
+        { q: "Pri TIG zavarivanju bakra velikih debljina - zaštitni plin je:", options: ["Argon", "mješavina N2/H2...80%/20%", "mješavina He/Ar... 60%/40%", "mješavina He/Ar...10%/90%"], correct: [2] },
+        { q: "Kod zavarivanja pod troskom:", options: ["struktura zavara je sitnozrnata", "struktura zavara je krupnozrnata", "zavarivanje u vertikalnom položaju"], correct: [1, 2] },
+        { q: "Obložene elektrode se čuvaju u skladištu?", options: ["s kontrolom vlažnosti koja mora biti ispod 43%", "s kontrolom vlažnosti koja mora biti ispod 55%", "vlažnost u skladištu nije bitna, ali temperatura treba biti 10°C od vanjske temperature", "vlažnost treba biti ispod 70%, a temperatura 30-40°C"], correct: [0] },
+        { q: "Kod zavarivanja bazičnom elektrodom u odnosu na zavarivanje rutilnom elektrodom dobiju se:", options: ["zavari s većom udarnom radnjom loma", "blaži zavari s manjim nadvišenjem", "zavari s manjim nadvšenjem kod kutnih zavara i većim nadvišenjem kod sučeljenih zavara", "zavari s većom prekidnom čvrstoćom"], correct: [0] },
+        { q: "Kod TIG zavarivanja Cr-Ni čelika zaštita korjenskog zavara vrši se plinovima?", options: ["Argon (skuplji od dušik/vodik)", "Dušik/Vodik (vodika <20%)", "Argon/CO2 (CO2 10-20%)", "Dušik/Vodik (vodik 50-80%)"], correct: [0, 1] },
+        { q: "Kod TIG zavarivanja odozgo na dolje zavarivanje se izvodi:", options: ["bez dodatnog materijala", "s dodatnim materijalom ako je kutni spoj", "nije bitno ako se koristi dodatni materijal", "s dodatnim materijalom ako je sučelleni spoj"], correct: [0] },
+        { q: "Padovi napona u električnom luku mogu biti:", options: ["za REL zavarivanje 15-18V", "za CO2 zavarivanje 18-25V", "za EPP zavarivanje 15-30V", "za EPT zavarivanje 26 - 40V"], correct: [1, 3] },
+        { q: "Kod impulsnog MAG zavarivanja čelika žicom Ø1.2 mm, srednjom vrednošću struje 340A, zavarivanje u nadglavnom položaju:", options: ["moguće je bez problema", "nije moguće", "moguće je uz niže napone električnog luka", "moguće kod velikih brzina zavarivanja i njihanje el. luka"], correct: [1] },
+        { q: "MIG zavarivanje može se koristiti za zavarivanje", options: ["Aluminija ako se koristi plin Ar", "Aluminija ako se koristi mješavina plina Ar+He", "Cr-Ni čelika kod koga se koristi plin Ar+2% O2", "Ugljični čelik s Ar+12%CO2"], correct: [0, 1] },
+        { q: "Kod zavarivanja plinskim plamenom C2H2+O2 kod debelih limova koristi se:", options: ["desna tehnika", "lijeva tehnika", "lijeva tehnika uz primjenu debljeg dodatnog materijala", "nije bitno koja tehnika"], correct: [0] },
+        { q: "Kod MIG/MAG zavarivanja Cr-Ni čelika najbolje je koristiti ove plinove i mješavine", options: ["Ar+1-10%O2; Ar+2-3%CO2", "Ar", "Ar+6%CO2", "Ar+20%N2"], correct: [0] },
+        { q: "Kod EPP zavarivanja napon električnog luka ovisi:", options: ["jakosti struje i vrsti praška", "samo o jakosti struje", "samo o vrsti praška", "o brzini zavarivanja i jakosti struje"], correct: [0] },
+        { q: "Kvašenje površina metala kod lemljenja najbolje je kada je kut kvašenja", options: ["10°", "20°", "60°", "90°"], correct: [0] },
+        { q: "Kod REL zavarivanja", options: ["BAZIČNA elektroda drži se na desnu stranu, a dužina luka je jednaka ½Ø elektrode", "BAZIČNA elektroda se drži pod kutem 80 - 85°u smjeru zavarivanja a dužina luka jednaka je 1/2 Ø elektrode", "KISELA elektroda se drži vertikalno, dužina luka jednaka je promjeru elektrode", "RUTILNA elektroda se drži pod kutem od 70-80°, dužina el. Luka jednaka je Ø elektrode"], correct: [1, 3] },
+        { q: "Kod elektrootpornog točkastog zavarivanja, vremena zavarivanja su najčešća:", options: ["do 0,01 s", "od 0,05 - 0,08 s", "od 0,1 - 0,5 s", "1-5 s"], correct: [2] },
+        { q: "Kod zavarivanja običnih konstrukcijskih čelika koristi se mješavina plinova Ar+18% CO2", options: ["dobije se bolja penetracija", "dobije se lošiji prijenos metala", "dobije se bolji prijenos metala i bolja penetracija", "dobije se bolji prijenos metala i manja penetracija"], correct: [2] },
+        { q: "Korekcija promjene napona električne mreže, ugrađen el. sklop koji automatski regulira napon, moguće je napraviti sa izvorima struje:", options: ["Ispravljač s pomičnom kotvom", "Ispravljač s promjenom broja zavoja", "Ispravljač s tiristorima", "Ispravljač s tranzistorima"], correct: [2, 3] },
+        { q: "Prema EN standardu označavaju se postupci zavarivanja:", options: ["112 REL", "131 MIG", "135 MAG", "141 TIG"], correct: [1, 2, 3] },
+        { q: "Na dubinu penetracije kod MAG zavarivanja bitno utječu ovi parametri i ove kombinacije parametara:", options: ["struja zavarivanja", "brzina zavarivanja", "struja i brzina zavarivanja u kombinacijama", "napon i slobodni kraj žice"], correct: [0, 1, 2] },
+        { q: "Uvjet da bude zavarljiv plastomer:", options: ["da bude niže gustoće", "da postoji termo plastično stanje", "da ima dovoljnu istezljivost", "da ima veliki modul elastičnosti"], correct: [1] },
+        { q: "Glavni uzroci pora kod zavarivanja Al legura:", options: ["nečist osnovni i dodatni materijal", "nečist plin", "loši parametri", "loša tehnika rada"], correct: [0, 1, 2, 3] },
+        { q: "Koji su kvalitetni postupci zavarivanja Al", options: ["Plinsko", "MAG", "MIG", "TIG"], correct: [2, 3] },
+        { q: "Kod izvora istosmjerne struje prema EN HR normama, maksimalni napon praznog hoda može biti:", options: ["(=) Istosmjerna struja do 110 V", "(=) Istosmjerna struja do 70 V", "(~) Izmjenična struja do 90 V", "(~) Izmjenična struja do 70 V"], correct: [0] },
+        { q: "Svojstva elektroda za REL zavarivanje s bazičnom elektrodom:", options: ["nisu osjetljive na vlagu", "u pravilu se koriste na (+) polu istosmjerne struje", "dužina elek. luka jednaka je 1½ promjera elektrode", "dobiju se zavari loših mehaničkih svojstava"], correct: [1, 2] },
+        { q: "Kod Synergic MIG/MAG uređaja radnik vrši izbor:", options: ["impulsne i osnovne struje", "vrijeme trajanja impulsne struje to, vrijeme trajanja osnovne struje to", "sve te vrijednosti", "brzinu žice za zadanu vrstu i promjer žice elektrode"], correct: [3] },
+        { q: "Najznačajnije sile pri MIG/MAG zavarivanju su:", options: ["Sila gravitacije", "Lorenzova sila", "Lorenzova sila i sile površinske napetosti"], correct: [2] },
+        { q: "Slobodni kraj žice kod EPP zavarivanja", options: ["30-60 mm", "25-40 mm (Čelik)", "20-30 mm (za Cr-Ni čelike)"], correct: [1, 2] },
+        { q: "Zaštitni plin kod zavarivanja plazmom", options: ["Ar+6% H2 (3-7%)"], correct: [0] },
+        { q: "Koji postupci su prikladniji za zavarivanje čeličnih limova debljine do 1 mm?:", options: ["Plinsko zavarivanje", "REL zavarivanje", "TIG zavarivanje", "Elektrootporno točkasto zavarivanje"], correct: [2, 3] },
+        { q: "Shodno ISO normi oznaka 141 odnosi se na:", options: ["REL zavarivanje", "EPP zavarivanje", "TIG zavarivanje", "Plazma zavarivanje"], correct: [2] },
+        { q: "Zavarivanje taljivom elektrodom u zaštiti plina naziva se:", options: ["MIG/MAG zavarivanje", "TIG zavarivanje", "WIG zavarivanje", "MMA zavarivanje"], correct: [0] },
+        { q: "Uzrok hrapave površine reznog profila je:", options: ["Preveliki pritisak reznog kisika", "Premali pritisak reznog kisika", "Plamen za predgrijavanje s pretičkom gorivog plina", "Rezna sapnica preblizu je radnom materijalu"], correct: [0, 3] },
+        { q: "Kod plinskog zavarivanja tankih limova koristi se:", options: ["Lijeva tehnika", "Desna tehnika", "Lijeva tehnika uz primjenu debljeg dodatnog materijala", "Nije bitno koja se tehnika koristi"], correct: [0] },
+        { q: "Kako se na izvorima struje sa thiristorima (SCR) upravlja izlazom:", options: ["Vremenskim upravljanjem signala na vratima tijekom ciklusa izmjenične struje - upravlja se trajanjem vremena provođenja struje", "Naponski signal na vratima određuje veličinu vodljivog stanja kroz thiristor", "Thiristori su samoregulirajući", "Thiristori akumuliraju energiju"], correct: [0] },
+        { q: "Indukcija feromagnetskog materijala:", options: ["Beskonačno raste kada se pojačava polje uzbude", "Nikada se ne mijenja", "Smanjuje se kada se pojačava polje uzbude", "Pojačava se do određene veličine kada se polje uzbude pojačava"], correct: [3] },
+        { q: "Za električni luk vrijedi:", options: ["Anoda se manje zagrijava od katode", "Katoda se više zagrijava od anode", "Pri istosmjernoj struji razvijena toplina je podjednaka na katodi i anodi", "Pri izmjeničnoj struji razvijena toplina je podjednaka na katodi i anodi"], correct: [3] },
+        { q: "Puhanje električnog luka se može smanjiti:", options: ["Primjenom celuloznih elektroda", "Primjenom izmjenične struje", "Primjenom rutilnih elektroda", "Njihanjem elektrode do maksimalno 8 mm"], correct: [1] },
+        { q: "U električnom luku pri TIG zavarivanju:", options: ["Ukupni pad napona jednak je zbroju padova napona u anodnom području, stupu luka i katodnom području", "Ukupni pad napona jednak je zbroju padova napona u anodnom području i katodnom području", "Dolazi do disocijacije CO2", "Ukupni pad napona jednak je duplom padu napona"], correct: [0] },
+        { q: "Intermitencija izvora struje za zavarivanje izražava se kao izlazna snaga (struja) tijekom izvjesnog broja minuta unutar 10-minutnog perioda. Koja od slijedećih tvrdnji je točna?", options: ["Stroj intermitencije 300A / 60% proizveden je da isporučuje 300A tijekom 6 minuta unutar 10-minutnog ciklusa", "Stroj intermitencije 300A/ 30% proizveden je da isporučuje 300A tijekom 10-minutnog ciklusa", "Stroj intermitencije 250A / 30% proizveden je da isporučuje 250A tijekom 30 minuta", "Stroj intermitencije 300A / 60% proizveden je da isporučuje maksimalno 500A"], correct: [0] },
+        { q: "Invertori su uređaji kod kojih:", options: ["Se tranzistori nalaze u primaru energetskog transformatora", "Se tranzistori nalaze u sekundaru energetskog transformatora", "Nije bitno da li se tranzistori nalaze u primaru ili sekundaru", "Se tranzistori nalaze u primaru i sekundaru"], correct: [0] },
+        { q: "Regulaciju struje zavarivanja u izlaznom krugu ispravljača za zavarivanje moguće je:", options: ["Pomoću pomične kotve", "Izmjenom broja zavoja na transformatorskom dijelu", "Tiristorski", "Tranzistorski"], correct: [2, 3] },
+        { q: "Impulsno zavarivanje je široko primjenjivana tehnologija za zavarivanje materijala. Koja su tipična svojstva ovog elektrolučnog postupka?", options: ["Upravljani prijenos metala", "Jaka struja zavarivanja", "Manji utrošak zaštitnog plina", "Mali napon luka"], correct: [0, 1] },
+        { q: "Mali postotak O2 u mješavini plinova kod MIG/MAG zavarivanja:", options: ["Smanjuje površinsku napetost kapljice i rastaljenog metala", "Povećava površinsku napetost kapljice i rastaljenog materijala", "Pospješuje prijenos metala u sitnim kapljicama", "Ne utječe na prijenos metala"], correct: [0, 2] },
+        { q: "Pri primjeni TIG postupka za zavarivanje cijevi od ugljičnih čelika, zavarivači imaju teškoća u izradi prihvatljivih zavara ako se ne koristi plin za korijensku zaštitu. Izaberite najpogodniji plin za korijensku zaštitu imajući u vidu trošak plina!", options: ["Helij", "Argon", "Dušik / vodik", "CO2"], correct: [2] },
+        { q: "Kojom vrstom struje je moguće zavarivati aluminijske legure ako se primjenjuje ručni TIG postupak?", options: ["Istosmjerna struja, (+) pol na elektrodi, zaštitni plin argon", "Istosmjerna struja, (+) pol na elektrodi, zaštitni plin 95% Ar, 5% O2", "Istosmjerna struja, (-) pol na elektrodi, zaštitni plin helij", "Izmjenična struja, zaštitni plin argon"], correct: [3] },
+        { q: "Pri TIG zavarivanju visokolegiranih čelika koristi se:", options: ["Istosmjerna struja, elektroda na minus polu", "Istosmjerna struja, elektroda na plus polu", "Izmjenična struja", "Elektroda većeg promjera nego kod zavarivanja aluminijskih legura"], correct: [0] },
+        { q: "Netaljive elektrode za TIG zavarivanje izrađuju se od volframa legiranog malim dodacima torijevog ili zirkonijevog oksida. Ovi dodaci:", options: ["Olakšavaju uspostavu električnog luka", "Stabiliziraju električni luk", "Povećavaju dozvoljeno strujno opterećenje", "Smanjuje eroziju vrha elektrode"], correct: [0, 1, 2, 3] },
+        { q: "Uspostavljanje električnog luka kod TIG zavarivanja kratkim spojevima izbjegava se zbog:", options: ["Oštećivanja vrha elektrode", "Uključaka volframa u zavaru", "Opasnosti po zavarivača", "Smanjenja produktivnosti"], correct: [0, 1] },
+        { q: "Kod impulsnog TIG zavarivanja u odnosu na «klasično» ručno TIG zavarivanje:", options: ["Zavarivač lakše kontrolira talinu", "Zavarivaču je posebno lakše zavariti korijen", "Zavarivaču je teže kontrolirati talinu", "Puno je veći utrošak plina"], correct: [0, 1] },
+        { q: "Općenito veća proizvodnost zavarivanja praškom punjenim žicama u usporedbi sa MIG/MAG zavarivanjem punim žicama posljedica je:", options: ["Mehaniziranog dodavanja žice", "Eliminacije čišćenja prolaza / slojeva zavara", "Veće gustoće energije (snage)", "Manjeg promjera žice"], correct: [2] },
+        { q: "Koji čimbenici najznačajnije utječu na prijenos metala kod MIG/MAG zavarivanja?", options: ["Sastav zaštitnog plina", "Struja zavarivanja (brzina dodavanja žice)", "Sastav elektrodne žice", "Sastav osnovnog metala"], correct: [0, 1, 2] },
+        { q: "Praškom punjene žice kod MAG zavarivanja:", options: ["Mogu se koristiti pri zavarivanju u vertikalnom položaju", "Prašak u žici služi za legiranje, poboljšavanje stabilnosti električnog luka, povećanje rastaljene količine metala i formiranje površine zavara", "Vrsta praška u žici utječe na mehanička svojstva zavara, ali ne utjeće na stabilnost električnog luka", "Praškom punjenim žicama moguće je zavarivati samo uz prijenos metala kratkim spojevima"], correct: [0, 1] },
+        { q: "Na penetraciju kod MAG zavarivanja bitno utječu ovi parametri zavarivanja:", options: ["Struja zavarivanja", "Brzina zavarivanja", "Struja i brzina zavarivanja u kombinacijama", "Protok zaštitnog plina"], correct: [0, 1, 2] },
+        { q: "Kod MAG zavarivanja desna tehnika daje:", options: ["Veću penetraciju", "Veće nadvišenje", "Manju penetraciju", "Širi zavar"], correct: [0] },
+        { q: "Pri MIG/MAG impulsnom zavarivanju najbolje je:", options: ["Kada se kapljice odvajaju na početku impulsa", "Kada se kapljice odvajaju na kraju impulsa", "Za vrijeme trajanja osnovne struje zavarivanja", "Na sredini vremena trajanja osnovne struje zavarivanja"], correct: [1] },
+        { q: "Obloga elektrode kod REL zavarivanja obavlja slijedeće zadaće:", options: ["Olakšava ionizaciju i stabilizira električni luk", "Proizvodi plinsku zaštitu za kupku rastaljenog metala", "Proizvodi sloj troske na površini zavara", "Smanjuje naprezanja zavara"], correct: [0, 1, 2] },
+        { q: "Koje su posljedice REL zavarivanja prejakom strujom?", options: ["Prevelika naprezanja u zavaru", "Ugorine, pore", "Jako rasprskavanje kapljica metala", "Premalo nadvišenje metala zavara"], correct: [1, 2] },
+        { q: "Kod REL zavarivanja magistralnih cjevovoda celuloznim elektrodama:", options: ["Silazna tehnika (odozgo prema dolje) daje veću produktivnost", "Uzlazna tehnika (odozdo prema gore) daje veću produktivnost", "Lakše je zavarivati uzlaznom tehnikom", "Obje navedene tehnike daju istu produktivnost"], correct: [0] },
+        { q: "Odaberite točnu(e) tvrdnju za REL zavarivanje:", options: ["REL zavarivanje s bazičnim elektrodama daje zavare s manjom udarnom radnjom loma", "REL zavarivanje rutilnim elektrodama daje ljepši izgled zavara", "Zavarivaču je jednostavnije REL zavarivanje rutilnim elektrodama", "Zavarivaču je jednostavnije REL zavarivanje bazičnim elektrodama"], correct: [1, 2] },
+        { q: "Kod REL zavarivanja na izvoru struje za zavarivanje se odabire:", options: ["Struja i napon zavarivanja", "Napon zavarivanja", "Struja zavarivanja", "Napon zavarivanja i induktivitet"], correct: [2] },
+        { q: "Metalurška funkcija obloge elektrode kod REL zavarivanja sastoji se od:", options: ["Rafinacije", "Otplinjavanja", "Omogućavanja dobrog uspostavljanja i održavanja električnog luka", "Legiranja"], correct: [0, 1, 3] },
+        { q: "U prisilnim položajima kod REL zavarivanja struja zavarivanja u odnosu na onu koja se upotrebljava u horizontalnom položaju mora biti:", options: ["Veća", "Manja", "30% veća", "Ista"], correct: [1] },
+        { q: "Pukotine izvedene po sredini zavara izvedenog EPP postupkom događaju se uslijed:", options: ["Zavar je prevelike dubine (penetracija) u odnosu na njegovu širinu", "Prisustva željeznog sulfida", "Prevelike brzine zavarivanja", "Poprečnih naprezanja"], correct: [0, 1, 3] },
+        { q: "Koje vrste praškova treba prvenstveno koristiti za EPP zavarivanje konstrukcija i uređaja koji ne zahtijevaju povišena mehanička svojstva metala zavara:", options: ["Bazične, aluminatno bazičnog tipa", "Neutralne, kalcij-silikatnog i aluminatno-rutilnog tipa", "Kisele, mangansko-silikatnog tipa", "Visoko bazične, flouritno-bazičnog tipa"], correct: [2] },
+        { q: "Pad napona kod EPP zavarivanja iznosi:", options: ["15 do 18 V", "17 do 35 V", "15 do 30 V", "26 do 40 V"], correct: [3] },
+        { q: "Kod EPP zavarivanja žicom promjera 2.4 mm koriste se izvori struje sa:", options: ["Ravnom karakteristikom", "Padajućom karakteristikom", "Nije bitno koja karakteristika se koristi", "Rastućom karakteristikom"], correct: [0] },
+        { q: "Odrediti optimalni oblik spoja i broj slojeva kod dvostranog EPP zavarivanja limova debljine 12 mm:", options: ["Sučeljeni V spoj u 3 sloja", "Sučeljeni I spoj u 2 sloja", "Sučeljeni I spoj u 3 sloja", "Sučeljeni X spoj u dva sloja"], correct: [1] },
+        { q: "Prednost(i) EPP zavarivanja je (su):", options: ["Zbog velike taline i sporijeg hlađenja manje je zrno u strukturi zavara, što uvjetuje visoke vrijednosti žilavosti zavara", "Visoka produktivnost", "Jednostavna automatizacija", "Postupak je pogodan za sve položaje zavarivanja"], correct: [1, 2] },
+        { q: "Osnovni parametri točkastog elektrootpornog zavarivanja su:", options: ["Jakost struje zavarivanja", "Napon zavarivanja", "Sila na elektrode", "Vrijeme zavarivanja"], correct: [0, 2, 3] },
+        { q: "Kontaktni otpor pri elektrootpornom zavarivanju ovisi o:", options: ["Debljini materijala", "Sili na elektrode", "Vrsti osnovnog materijala", "Stanju površine osnovnog materijala"], correct: [0, 1, 2, 3] },
+        { q: "Tamo gdje se zahtjeva nepropusnost cijelom dužinom spoja upotrijebit će se:", options: ["EO točkasto zavarivanje", "EO šavno zavarivanje", "EO bradavičasto zavarivanje", "EO točkasto zavarivanje sa posebno oblikovanim elektrodama"], correct: [1] },
+        { q: "Elektrootporno zavarivanje limova različitih debljina:", options: ["Nije moguće zbog nejednolikog zagrijavanja bez obzira na debljine osnovnih materijala", "Moguće je do omjera debljina 1:3", "Moguće je samo pri zavarivanju aluminija", "Moguće je samo pri omjeru debljina 1:5"], correct: [1] },
+        { q: "Izvori struje za elektrootporno zavarivanje su:", options: ["Istosmjerni ili izmjenični", "Imaju padajuću karakteristiku", "Imaju ravnu karakteristiku", "Imaju napon praznog hoda preko 90 V"], correct: [0, 1, 2] },
+        { q: "Za bradavičasto elektrootporno zavarivanje vrijedi:", options: ["Elektrode su više toplinski opterećene", "Moguće je zavarivati više točaka odjednom", "Elektrode su manje toplinski opterećene", "Potrebno je kvalitetnije očistiti kontaktne površine"], correct: [1, 2] },
+        { q: "Za elektrootporno točkasto zavarivanje vrijedi:", options: ["Upotrebljava se za zavarivanje tankih limova", "Lako se robotizira", "Vrlo je česta upotreba u brodogradnji", "Lako se kombinira sa tehnologijom lijepljenja"], correct: [0, 1] },
+        { q: "Kako se postiže velika koncentracija energije kod plazma zavarivanja?", options: ["Primjenom istosmjerne struje s elektrodom na minus polu", "Stiskanjem električnog luka", "Uporabom plina visokog potencijala ionizacije za proizvodnju plazme", "Uporabom izvora struje s visokim naponom praznog hoda"], correct: [0, 1, 2] },
+        { q: "Neprelazni luk kod plazma zavarivanja uspostavlja se:", options: ["Između elektrode i sapnice", "Između elektrode i radnog komada", "Između sapnice i radnog komada", "Između elektrode i sapnice ali samo ako je plazmeni plin Ar"], correct: [0] },
+        { q: "U odnosu na TIG zavarivanje, kod plazma postupka zavarivanja:", options: ["Razmak između pištolja i radnog komada nije kritična veličina", "Velika koncentracija energije u plazmenom mlazu omogućava duboku penetraciju", "Zbog velike količine energije luk je nestabilan", "Manje su brzine zavarivanja"], correct: [0, 1] },
+        { q: "Prednosti Nd-Yag lasera u odnosu na CO2 laser su:", options: ["Veća snaga", "Vođenje zrake optičkim vlaknom", "Manja opasnost za ljudske oči", "višekromatičnost"], correct: [1] },
+        { q: "Interakcija laserske zrake i radnog komada ovisi o:", options: ["Optičkim i termodinamičkim svojstvima osnovnog materijala", "Gustoćom snage u točki interakcije", "Trajanjem interakcije", "Dinamikom ključanice"], correct: [0, 3] },
+        { q: "Da bi se izvelo rotacijsko zavarivanje trenjem nužno je:", options: ["Upotrijebiti dodatni materijal", "Spojiti samo dijelove koji imaju poprečni presjek jednake veličine", "Spajati samo istorodne materijale", "Rotirati jedan radni komad u odnosu na drugi koji je nepomičan"], correct: [3] },
+        { q: "Prednost(i) podvodnog mokrog zavarivanja u odnosu na suho podvodno zavarivanje je (su):", options: ["Ekonomski vrlo prihvatljiv postupak", "Moguća uporaba na velikim dubinama", "Izvrsna fleksibilnost", "Mali sadržaj dušika u zavaru"], correct: [0, 2] },
+        { q: "Aluminotermijsko zavarivanje upotrebljava se za?", options: ["Zavarivanje tračnica", "Zavarivanje katodne zaštite na ukopanim cjevovodima", "Zavarivanje ukruta prtljažnika u automobilskoj industriji", "Zavarivanje antenskih stupova"], correct: [0, 1] },
+        { q: "Za zavarivanje elektronskim mlazom karakteristično je:", options: ["Velika penetracija", "Vakuumska komora", "Mala gustoća energije", "Pretlačna komora"], correct: [0, 1] },
+        { q: "Zavarivanje ultrazvukom izvodi se na principu:", options: ["Piezoelektričnog efekta", "Spontane emisije ultrazvučnih valova", "Inverzne naseljenosti", "Doplerovog efekta"], correct: [0] },
+        { q: "Koji se plinovi koriste za plazma rezanje bakra i njegovih legura?", options: ["Komprimirani zrak", "Kisik", "Dušik", "Argon"], correct: [0, 1, 2, 3] },
+        { q: "Plinskim rezanjem nije moguće odrezati:", options: ["Konstrukcijske čelike", "Visokolegirane nehrđajuće čelike", "Al legure", "Cu legure"], correct: [1, 2, 3] },
+        { q: "Prednosti rezanja vodenim mlazom su:", options: ["Velike brzine rezanja", "Izostanak toplinskih deformacija", "Niska razina buke", "Jeftina oprema"], correct: [1] },
+        { q: "U odnosu na plinsko rezanje, plazma rezanje:", options: ["Je sporije", "Daje bolju kvalitetu reza na debljim materijalima", "Nije u stanju probiti sloj kromovih oksida", "Zahtjeva jeftiniju opremu"], correct: [1] },
+        { q: "Koji se zavarivački postupci koriste u prevlačenju?", options: ["REL navarivanje uz primjenu istosmjerne struje s elektrodom na pozitivnom polu", "EPP navarivanje trakastom elektrodom uz primjenu istosmjerne struje s elektrodom na negativnom polu", "Navarivanje elektronskim mlazom", "Navarivanje laserom"], correct: [1, 3] },
+        { q: "Koje su specifičnosti platiranja u odnosu na ostale tehnologije inženjerstva površine?", options: ["Moguće spajanje metalurški nekompatibilnih materijala", "Niska unutarnja naprezanja u materijalu prevlake", "Vrlo mali izbor materijala prevlake", "Mogućnost prevlačenja samo velikih, ravnih površina"], correct: [0, 2] },
+        { q: "Koje su prednosti MAG zavarivanja u uskom žlijebu?", options: ["Manji utrošak dodatnog materijala", "Manje deformacije", "Manja vjerojatnost pojave prokapljina", "Smanjenje vremena pripreme spoja (kod vertikalnog zavarivanja)"], correct: [0, 1] },
+        { q: "Između navedenih postupaka zavarivanja izabrati dva najpogodnija za robotizaciju:", options: ["EM", "MIG/MAG", "Laser", "E.O. točkasto zavarivanje"], correct: [1, 3] },
+        { q: "Osnovne prednosti on-line metode programiranja robota u odnosu na 3D grafičku metodu off-line programiranja:", options: ["Nije potreban visokostručni kadar", "Jednostavno osposobljavanje programera u kratkom vremenu", "Omogućavanje visoke fleksibilnosti robotizirane proizvodnje zavarivanjem", "Mogućnost 3D simulacije proizvodnog procesa na ekranu računala"], correct: [0, 1] },
+        { q: "Za robotizirano zavarivanje nije neophodno:", options: ["Visokoorganizirana okolina", "Kvalitetna priprema radnih komada", "Upotreba visokointeligentnih robota", "Upotreba laserskih kamera"], correct: [2, 3] },
+        { q: "Broj stupnjeva slobode gibanja robota je:", options: ["Broj slobodnih, odnosno mogućih nezavisnih kretanja", "Broj slobodnih, odnosno mogućih zavisnih kretanja", "Broj translacijskih zglobova", "Broj rotacijskih zglobova"], correct: [0] },
+        { q: "Između navedenih odgovora izabrati točne o laserima i robotima:", options: ["CO2 laser nije moguće povezati sa robotom", "Nd-Yag laser moguće je povezati sa robotom", "Pokretanjem robotskih zglobova kod sustava Nd-Yag laser-robot pokreću se i zrcala koja usmjeravaju lasersku zraku", "Za povezivanje robota i lasera potrebno je imati laser čiji se aktivni materijal pumpa diodama"], correct: [0] },
+        { q: "Kod mekog i tvrdog lemljenja, kvašenje lema može se mjeriti:", options: ["Odnosom temperature taljenja lema i osnovnog metala", "Dodirnim kutem između rastaljenog lema i osnovnog metala", "Brzinom apsorpcije ugljika sa površine osnovnog metala u lem", "Ničim od gore spomenutog"], correct: [1] },
+        { q: "Osnovna(e) razlika(e) lemljenja u odnosu na zavarivanje je (su):", options: ["Nema taljenja dodatnog materijala", "Ne dolazi do promjene strukture osnovnog materijala", "Dolazi do većih deformacija", "Postižu se veće čvrstoće spoja"], correct: [1] },
+        { q: "Kvašenje površine materijala lemom najbolje je kada je kut kvašenja:", options: ["10°", "20°", "60°", "90°"], correct: [0] },
+        { q: "Odabrati točnu(e) tvrdnju(e) za lemljenje:", options: ["Lemljenje se ne može vrlo lako mehanizirati i automatizirati, te zbog toga nije pogodno za serijsku i masovnu proizvodnju", "Lako se spajaju raznorodni metali", "Rijetko se primjenjuje jer postoji vrlo mali broj postupaka lemljenja", "Deformacije radnih komada su minimalne"], correct: [1, 3] },
+        { q: "Koji postupak spajanja se ne koristi kod spajanja plastične ploče na cijev?", options: ["Zavarivanje vrućim plinom", "Vibracijsko zavarivanje", "Ekstruzijsko zavarivanje", "Zavarivanje vrućom pločom/elementom"], correct: [0] },
+        { q: "Priprema površine plastičnih materijala prije lijepljenja provodi se radi:", options: ["Povećanja kohezijskih sila", "Povećanja adhezijskih sila", "Izbjegavanja naprezanja na odljepljivanje", "Povećanja čvrstoće spoja"], correct: [1, 3] },
+        { q: "Osnovno(a) pravilo(a) oblikovanja lijepljenih spojeva od plastičnih materijala je(su):", options: ["Osiguravanje što veće površine lijepljenja", "Izbjegavanje smičnog naprezanja", "Izbjegavanje naprezanja na odljepljivanje", "Isključiva uporaba sučeljenih spojeva"], correct: [0, 2] },
+        { q: "Pomak rubova PE cijevi (smaknuće) s vanjske strane prije sučeljenog zavarivanja smije iznositi najviše:", options: ["5% debljine stijenke cijevi", "10% debljine stijenke cijevi", "15% debljine stijenke cijevi", "Nije dozvoljeno smaknuće"], correct: [1] },
+        { q: "Označite načine spajanja za ugljične kompozite:", options: ["Zavarivanje postupcima velike gustoće energije (laser, elektronski mlaz)", "Lemljenje uz primjenu aktivnih lemova", "Zavarivanje trenjem", "lijepljenje"], correct: [3] },
+        { q: "Keramika je:", options: ["Otporna na trošenje", "Ima nisku otpornost na toplinski šok", "Lako zavarljiva", "Jeftina"], correct: [0, 1] }
+    ];
+
+    let questions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let currentSessionQuestions = []; // Sprema pitanja aktualnog kruga za pregled na kraju
+
+    function shuffle(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex !== 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    function initMenu() {
+        const container = document.getElementById('menu-buttons-container');
+        container.innerHTML = '';
+
+        const totalAvailable = rawQuestions.length;
+        const optionsCount = [30, 60, 90, totalAvailable];
+
+        optionsCount.forEach(count => {
+            const btn = document.createElement('button');
+            btn.className = 'btn';
+            if (count === totalAvailable) {
+                btn.innerText = `Sve (ukupno ${totalAvailable} pitanja)`;
+            } else {
+                btn.innerText = `${count} pitanja`;
+            }
+            btn.onclick = () => startQuiz(count);
+            container.appendChild(btn);
+        });
+
+        document.getElementById('menu-screen').style.display = 'block';
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('results-screen').style.display = 'none';
+        document.getElementById('review-screen').style.display = 'none';
+    }
+
+    function startQuiz(limit) {
+        let shuffledAll = JSON.parse(JSON.stringify(rawQuestions));
+        shuffle(shuffledAll);
+        
+        questions = shuffledAll.slice(0, Math.min(limit, shuffledAll.length));
+        currentSessionQuestions = questions; // Pohrani za kasniji pregled
+        
+        currentIndex = 0;
+        score = 0;
+
+        document.getElementById('menu-screen').style.display = 'none';
+        document.getElementById('quiz-screen').style.display = 'block';
+        loadQuestion();
+    }
+
+    // Funkcija za prikaz svih pitanja u bazi (sa menija)
+    function openReviewAllFromMenu() {
+        showReviewScreen(rawQuestions, "Pregled svih pitanja i točnih odgovora");
+    }
+
+    // Funkcija za prikaz pitanja iz upravo završenog kruga (sa ekrana rezultata)
+    function openReviewCurrentSession() {
+        showReviewScreen(currentSessionQuestions, "Pregled pitanja i točnih odgovora iz ovog kruga");
+    }
+
+    function showReviewScreen(questionsArray, titleText) {
+        document.getElementById('menu-screen').style.display = 'none';
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('results-screen').style.display = 'none';
+        
+        const reviewScreen = document.getElementById('review-screen');
+        reviewScreen.style.display = 'block';
+
+        document.getElementById('review-title').innerText = titleText;
+        const container = document.getElementById('review-container');
+        container.innerHTML = '';
+
+        questionsArray.forEach((q, idx) => {
+            const card = document.createElement('div');
+            card.className = 'review-card';
+
+            const title = document.createElement('div');
+            title.className = 'review-q-title';
+            title.innerText = `${idx + 1}. ${q.q}`;
+            card.appendChild(title);
+
+            q.options.forEach((opt, optIdx) => {
+                const optDiv = document.createElement('div');
+                optDiv.className = 'review-opt';
+                
+                let isCorrectAns = q.correct.includes(optIdx);
+                if (isCorrectAns) {
+                    optDiv.classList.add('is-correct');
+                    optDiv.innerText = `✓ ${opt} (Točan odgovor)`;
+                } else {
+                    optDiv.innerText = `• ${opt}`;
+                }
+                card.appendChild(optDiv);
+            });
+
+            container.appendChild(card);
+        });
+    }
+
+    function loadQuestion() {
+        const q = questions[currentIndex];
+        document.getElementById('question-counter').innerText = `Pitanje: ${currentIndex + 1} / ${questions.length}`;
+        document.getElementById('current-score').innerText = `Bodovi: ${score.toFixed(2)}`;
+        
+        const progressPercent = ((currentIndex) / questions.length) * 100;
+        document.getElementById('progress').style.width = `${progressPercent}%`;
+
+        document.getElementById('question-text').innerText = q.q;
+
+        const optionsList = document.getElementById('options-list');
+        optionsList.innerHTML = '';
+
+        q.options.forEach((opt, index) => {
+            const li = document.createElement('li');
+            li.className = 'option-item';
+            li.id = `opt-item-${index}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'option-content';
+
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.name = 'quiz-option';
+            input.value = index;
+            input.id = `opt-${index}`;
+
+            const label = document.createElement('label');
+            label.htmlFor = `opt-${index}`;
+            label.innerText = opt;
+            label.style.width = '100%';
+            label.style.cursor = 'pointer';
+
+            contentDiv.appendChild(input);
+            contentDiv.appendChild(label);
+            li.appendChild(contentDiv);
+
+            const tagSpan = document.createElement('span');
+            tagSpan.id = `tag-${index}`;
+            li.appendChild(tagSpan);
+            
+            li.onclick = (e) => {
+                if(e.target !== input) {
+                    input.checked = !input.checked;
+                }
+            };
+
+            optionsList.appendChild(li);
+        });
+
+        const feedback = document.getElementById('feedback');
+        feedback.style.display = 'none';
+        feedback.className = 'feedback';
+        
+        const actionButtons = document.getElementById('action-buttons');
+        actionButtons.innerHTML = `
+            <button class="btn btn-skip" id="skip-btn" onclick="skipQuestion()">Ne znam / Preskoči</button>
+            <button class="btn" id="submit-btn" onclick="checkAnswer()">Potvrdi odgovor</button>
+        `;
+    }
+
+    function skipQuestion() {
+        const q = questions[currentIndex];
+        const correctSet = new Set(q.correct);
+
+        q.options.forEach((opt, index) => {
+            const itemElement = document.getElementById(`opt-item-${index}`);
+            const inputElement = document.getElementById(`opt-${index}`);
+            const tagElement = document.getElementById(`tag-${index}`);
+            inputElement.disabled = true;
+
+            let isCorrect = correctSet.has(index);
+
+            if (isCorrect) {
+                itemElement.classList.add('missed-correct');
+                tagElement.className = 'tag tag-missed-correct';
+                tagElement.innerText = '✓ Točan odgovor';
+            }
+        });
+
+        const feedback = document.getElementById('feedback');
+        feedback.style.display = 'block';
+        feedback.innerText = `Pitanje je preskočeno (+0.00 bodova).`;
+        feedback.className = 'feedback skipped';
+
+        const actionButtons = document.getElementById('action-buttons');
+        actionButtons.innerHTML = `<button class="btn" onclick="nextQuestion()">Sljedeće pitanje</button>`;
+    }
+
+    function checkAnswer() {
+        const q = questions[currentIndex];
+        const inputs = document.querySelectorAll('input[name="quiz-option"]:checked');
+        
+        if (inputs.length === 0) {
+            alert("Molimo odaberite odgovor ili kliknite 'Ne znam / Preskoči'!");
+            return;
+        }
+
+        let selectedIndices = Array.from(inputs).map(inp => parseInt(inp.value));
+        
+        let correctSet = new Set(q.correct);
+        let selectedSet = new Set(selectedIndices);
+
+        let points = 0;
+        let totalCorrectNeeded = q.correct.length;
+        let hasWrongSelection = false;
+
+        selectedIndices.forEach(idx => {
+            if (!correctSet.has(idx)) {
+                hasWrongSelection = true;
+            }
+        });
+
+        if (hasWrongSelection) {
+            points = -1;
+        } else {
+            selectedIndices.forEach(idx => {
+                if (correctSet.has(idx)) {
+                    points += (1 / totalCorrectNeeded);
+                }
+            });
+        }
+
+        score += points;
+
+        q.options.forEach((opt, index) => {
+            const itemElement = document.getElementById(`opt-item-${index}`);
+            const inputElement = document.getElementById(`opt-${index}`);
+            const tagElement = document.getElementById(`tag-${index}`);
+            inputElement.disabled = true;
+
+            let isCorrect = correctSet.has(index);
+            let isSelected = selectedSet.has(index);
+
+            if (isSelected && isCorrect) {
+                itemElement.classList.add('user-correct');
+                tagElement.className = 'tag tag-user-correct';
+                tagElement.innerText = '✓ Tvoj odabir (Točno)';
+            } else if (!isSelected && isCorrect) {
+                itemElement.classList.add('missed-correct');
+                tagElement.className = 'tag tag-missed-correct';
+                tagElement.innerText = '⚠ Propušteno (Točno)';
+            } else if (isSelected && !isCorrect) {
+                itemElement.classList.add('user-wrong');
+                tagElement.className = 'tag tag-user-wrong';
+                tagElement.innerText = '✗ Tvoj odabir (Krivo)';
+            }
+        });
+
+        const feedback = document.getElementById('feedback');
+        feedback.style.display = 'block';
+        
+        let isTotallyCorrect = !hasWrongSelection && selectedSet.size === correctSet.size && [...selectedSet].every(val => correctSet.has(val));
+
+        if (isTotallyCorrect) {
+            feedback.innerText = `Potpuno točno! Osvojeno bodova: +${points.toFixed(2)}`;
+            feedback.className = 'feedback correct';
+        } else if (!hasWrongSelection && selectedIndices.length < totalCorrectNeeded) {
+            feedback.innerText = `Djelomično točno! Nisi označio/la sve točne odgovore. Bodovi: +${points.toFixed(2)}`;
+            feedback.className = 'feedback partial';
+        } else {
+            feedback.innerText = `Netočno! Odabran je krivi odgovor. Bodovi: ${points.toFixed(2)}`;
+            feedback.className = 'feedback incorrect';
+        }
+
+        const actionButtons = document.getElementById('action-buttons');
+        actionButtons.innerHTML = `<button class="btn" onclick="nextQuestion()">Sljedeće pitanje</button>`;
+    }
+
+    function nextQuestion() {
+        currentIndex++;
+        if (currentIndex < questions.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('results-screen').style.display = 'block';
+        
+        let maxPossibleScore = questions.length;
+        let percentage = (score / maxPossibleScore) * 100;
+        if (percentage < 0) percentage = 0;
+
+        document.getElementById('final-score').innerText = `Ukupno bodova: ${score.toFixed(2)} / ${maxPossibleScore}`;
+        document.getElementById('percentage-display').innerText = `Postotak uspješnosti: ${percentage.toFixed(1)}%`;
+    }
+
+    function goToMenu() {
+        initMenu();
+    }
+
+    window.onload = initMenu;
+</script>
+
+</body>
+</html>
