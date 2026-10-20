@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IWE Kviz Priprema</title>
+    <title>IWE Kviz - Kompletna Priprema</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -45,8 +45,9 @@
             text-align: center;
             color: var(--primary);
             margin-bottom: 20px;
+            font-size: 1.5rem;
         }
-        .menu-screen, .quiz-screen, .results-screen, .review-screen {
+        .main-menu-screen, .sub-menu-screen, .quiz-screen, .results-screen, .review-screen {
             display: none;
         }
         .active-screen {
@@ -101,13 +102,13 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            user-select: none; /* Sprečava označavanje teksta pri brzom klikanju */
+            user-select: none;
         }
         .option-content {
             display: flex;
             align-items: center;
             width: 100%;
-            pointer-events: none; /* Omogućava da klik na bilo koji dio stavke aktivira parent li */
+            pointer-events: none;
         }
         .option-item:hover {
             border-color: var(--primary);
@@ -179,7 +180,6 @@
             font-weight: 600;
         }
 
-        /* Prilagođene dimenzije tipki */
         .btn-group {
             display: flex;
             gap: 10px;
@@ -197,11 +197,11 @@
             margin-top: 10px;
         }
         .btn-main {
-            flex: 2; /* Glavna tipka "Potvrdi" zauzima dvostruko više prostora */
+            flex: 2;
             font-size: 1.1rem;
         }
         .btn-small {
-            flex: 1; /* Tipke Odustani i Preskoči su manje */
+            flex: 1;
             font-size: 0.9rem;
             padding: 12px 10px;
         }
@@ -273,13 +273,23 @@
 <body>
 
 <div class="container">
-    <h1>IWE Kviz - Priprema ispita</h1>
+    <h1 id="app-title">IWE Kviz - Glavni Izbornik</h1>
     
-    <!-- GLAVNI MENI -->
-    <div id="menu-screen" class="menu-screen active-screen">
-        <p style="text-align: center; color: #94a3b8; margin-bottom: 20px;">Izaberite koliko pitanja želite rješavati u ovom krugu ili pregledajte gradivo:</p>
-        <div class="menu-buttons" id="menu-buttons-container"></div>
+    <!-- 1. GLAVNI MENI (ODABIR KVIZA) -->
+    <div id="main-menu-screen" class="main-menu-screen active-screen">
+        <p style="text-align: center; color: #94a3b8; margin-bottom: 20px;">Izaberite koji kviz želite rješavati:</p>
+        <div class="menu-buttons">
+            <button class="btn" onclick="selectQuizType('old')">📜 Stara ispitna pitanja (127 pitanja)</button>
+            <button class="btn" onclick="selectQuizType('extended')">🚀 Novi prošireni kviz (Stara pitanja + Skripte + Predavanja)</button>
+        </div>
+    </div>
+
+    <!-- 2. POD-MENI (ODABIR BROJA PITANJA) -->
+    <div id="sub-menu-screen" class="sub-menu-screen">
+        <p id="sub-menu-desc" style="text-align: center; color: #94a3b8; margin-bottom: 20px;"></p>
+        <div class="menu-buttons" id="sub-menu-buttons-container"></div>
         <button class="btn btn-secondary" onclick="openReviewAllFromMenu()" style="margin-top: 15px;">📚 Pregled svih pitanja s odgovorima</button>
+        <button class="btn btn-cancel" onclick="goToMainMenu()" style="margin-top: 10px; width: 100%;">⬅ Nazad na odabir kviza</button>
     </div>
 
     <!-- KVIZ EKRAN -->
@@ -312,7 +322,8 @@
         <p id="percentage-display"></p>
         <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
             <button class="btn btn-secondary" onclick="openReviewCurrentSession()">📝 Pregled pitanja i točnih odgovora iz ovog kruga</button>
-            <button class="btn" style="width: 100%;" onclick="goToMenu()">Nazad na glavni meni</button>
+            <button class="btn" style="width: 100%;" onclick="goToSubMenu()">Nazad na meni kviza</button>
+            <button class="btn btn-cancel" style="width: 100%;" onclick="goToMainMenu()">Glavni izbornik (Odabir kviza)</button>
         </div>
     </div>
 
@@ -320,12 +331,13 @@
     <div id="review-screen" class="review-screen">
         <h2 id="review-title" style="text-align: center; margin-bottom: 20px;">Pregled pitanja</h2>
         <div id="review-container"></div>
-        <button class="btn" onclick="goToMenu()" style="margin-top: 20px; width: 100%;">Nazad na glavni meni</button>
+        <button class="btn" onclick="goToSubMenu()" style="margin-top: 20px; width: 100%;">Nazad na meni kviza</button>
     </div>
 </div>
 
 <script>
-    const rawQuestions = [
+    // Baza 1: Stara ispitna pitanja (1 - 127)
+    const oldQuestions = [
         { q: "Pri zavarivanju istosmjernom strujom više se zagrijava na:", options: ["anoda", "katoda", "obje jednako", "katoda kod TIG, a anoda kod MIG"], correct: [0] },
         { q: "Najveći napon el.luka uz istu struju bit će kod zaštitnog plina:", options: ["Argona", "Vodika", "Dušika", "mješavine Ar/CO2"], correct: [1] },
         { q: "REL zavarivanje elektrode s bazičnom oblogom:", options: ["nisu osjetljive na vlagu", "u pravilu se koriste na (-) polu istosmjerne struje", "dužina el. luka jednaka je polovici promjera elektrode", "obloga sadrži veću količinu CaF2 od drugih elektroda"], correct: [2, 3] },
@@ -361,7 +373,7 @@
         { q: "Kvašenje površina metala kod lemljenja najbolje je kada je kut kvašenja", options: ["10°", "20°", "60°", "90°"], correct: [0] },
         { q: "Kod REL zavarivanja", options: ["BAZIČNA elektroda drži se na desnu stranu, a dužina luka je jednaka ½Ø elektrode", "BAZIČNA elektroda se drži pod kutem 80 - 85°u smjeru zavarivanja a dužina luka jednaka je 1/2 Ø elektrode", "KISELA elektroda se drži vertikalno, dužina luka jednaka je promjeru elektrode", "RUTILNA elektroda se drži pod kutem od 70-80°, dužina el. Luka jednaka je Ø elektrode"], correct: [1, 3] },
         { q: "Kod elektrootpornog točkastog zavarivanja, vremena zavarivanja su najčešća:", options: ["do 0,01 s", "od 0,05 - 0,08 s", "od 0,1 - 0,5 s", "1-5 s"], correct: [2] },
-        { q: "Kod zavarivanja običnih konstrukcijskih čelika koristi se mješavina plinova Ar+18% CO2", options: ["dobije se bolja penetracija", "dobije se lošiji prijenos metala", "dobije se bolji prijenos metala i bolja penetracija", "dobije se bolji prijenos metala i manja penetracija"], correct: [2] },
+        { q: "Kod zavarivanja običnih konstrukcijskih čelika koristi se mješavina plinova Ar+18% CO2", options: ["dobije se bolja penetracija", "dobije se lošiji prijenos metala", "dobije se lošiji prijenos metala i veća penetracija", "dobije se bolji prijenos metala i manja penetracija"], correct: [2] },
         { q: "Korekcija promjene napona električne mreže, ugrađen el. sklop koji automatski regulira napon, moguće je napraviti sa izvorima struje:", options: ["Ispravljač s pomičnom kotvom", "Ispravljač s promjenom broja zavoja", "Ispravljač s tiristorima", "Ispravljač s tranzistorima"], correct: [2, 3] },
         { q: "Prema EN standardu označavaju se postupci zavarivanja:", options: ["112 REL", "131 MIG", "135 MAG", "141 TIG"], correct: [1, 2, 3] },
         { q: "Na dubinu penetracije kod MAG zavarivanja bitno utječu ovi parametri i ove kombinacije parametara:", options: ["struja zavarivanja", "brzina zavarivanja", "struja i brzina zavarivanja u kombinacijama", "napon i slobodni kraj žice"], correct: [0, 1, 2] },
@@ -455,6 +467,419 @@
         { q: "Keramika je:", options: ["Otporna na trošenje", "Ima nisku otpornost na toplinski šok", "Lako zavarljiva", "Jeftina"], correct: [0, 1] }
     ];
 
+// Baza 2: Prošireni kviz (Kompletna skripta i predavanja) - razbijeni odgovori i balansirane pozicije
+    const extendedQuestions = [
+        ...oldQuestions,
+        // Dodatna pitanja iz skeniranih bilježaka, skripata i predavanja (128 - 400+)
+        { q: "Kakav utjecaj ima povećanje udjela argona u zaštitnom plinu pri zavarivanju?", options: ["Smanjuje se brzina zavarivanja za 50%", "Smanjuje se zagrijavanje materijala", "Povećava se dubina penetracije", "Potpuno se eliminira pojava pora bez obzira na čistoću"], correct: [1, 2] },
+        { q: "Kod kojih se čelika primjenjuje korijenska zaštita mješavinom (N2+H2) ili čistim N2, i kako se izvodi?", options: ["Kod običnih konstrukcijskih čelika korištenjem propan-butana", "Upuhivanjem plina s jedne strane (3-4 l/min) uz ispuh s druge strane", "Kod visokolegiranih čelika (npr. CrNi, duplex)", "Koristi se isključivo zrak iz kompresora pod visokim tlakom"], correct: [1, 2] },
+        { q: "Koja je osnovna razlika između inertnog i aktivnog plina u zavarivanju?", options: ["Inertni plin ne sudjeluje u kemijskim reakcijama u talini", "Inertni plin se koristi samo za rezanje materijala", "Aktivni plin sudjeluje u kemijskim reakcijama u talini", "Aktivni plin hladi sapnicu bez utjecaja na luk"], correct: [0, 2] },
+        { q: "Koji plin ima najveću toplinsku vodljivost?", options: ["Čisti argon (Ar)", "Ugljični dioksid (CO2)", "Vodik (H2)", "Helij (He)"], correct: [2, 3] },
+        { q: "Koje su glavne prednosti praškom punjene žice (PPŽ)?", options: ["Veća produktivnost i količina depozita", "Niska cijena i potpun izostanak troske", "Dobra mehanička svojstva i zaštitna uloga praška", "Mogućnost rada bez ikakvog izvora električne struje"], correct: [0, 2] },
+        { q: "Koja je uloga acetona u bocama za acetilen?", options: ["Služi kao dodatni gorivi plin", "Omogućuje sigurno otapanje acetilena", "Sprječava eksploziju pri pražnjenju boce", "Hladi bocu tijekom zavarivanja"], correct: [1, 2] },
+        { q: "Ako zavarujemo CrNi čelik, koji se zaštitni plinovi najčešće koriste?", options: ["Čisti propan-butan i kisik", "Argon ili mješavine argon + vodik", "Mješavine s malim udjelom CO2 ili O2", "100% ugljični dioksid pod visokim tlakom"], correct: [1, 2] },
+        { q: "U kojem se rasponu kreće dodatak vodika (H2) u argonu kod zavarivanja odgovarajućih materijala?", options: ["Od 50% do 90%", "U rasponu od 1% do 5%", "Tipično 2% do 3% u praksi", "Točno 45% do 60%"], correct: [1, 2] },
+        { q: "Koji se pol (elektroda ili radni komad) više zagrijava pri istosmjernoj struji?", options: ["Uvijek se više zagrijava minus pol (katoda)", "Više se zagrijava plus pol (anoda)", "Kod TIG-a (DC-) više se zagrijava radni komad", "Toplina se razvija samo u plinu, ne na polovima"], correct: [1, 2] },
+        { q: "Kakva struja (istosmjerna ili izmjenična) daje stabilniji električni luk?", options: ["Izmjenična struja jer stalno mijenja polaritet", "Istosmjerna struja daje stabilniji luk", "Istosmjerna struja je osjetljivija na magnetsko puhanje", "Visokofrekventna impulsna struja bez mrežnog izvora"], correct: [1, 2] },
+        { q: "Koji plin ima najveću energiju disocijacije?", options: ["Kisik (O2)", "Vodik (H2)", "Ugljični dioksid (CO2)", "Argon (Ar)"], correct: [1] },
+        { q: "Koja su osnovna područja električnog luka?", options: ["Anodno područje (+)", "Katodno područje (-)", "Stup plazme luka", "Primarni namotaj transformatora"], correct: [0, 1, 2] },
+        { q: "Koliku temperaturu razvija električni luk?", options: ["Oko 500 – 1000 °C", "Preko 20000 °C", "Između 3000 i 5000 °C", "Točno 800 °C"], correct: [2] },
+        { q: "Kako se uspostavlja električni luk kod REL, MAG i TIG postupaka?", options: ["Ručnim ili automatskim kratkim spojem", "Visokofrekventnim (HF) visokonaponskim impulsom", "Isključivo kemijskom reakcijom praha", "Zagrijavanjem plinskim plamenikom"], correct: [0, 1] },
+        { q: "Kako se može riješiti problem puhanja električnog luka?", options: ["Rasporedom više masa ili prijelazom na rutilnu elektrodu", "Skraćivanjem luka ili stavljanjem produžnih pločica", "Povećanjem napona mrežnog priključka na 500V", "Uređajem za demagnetizaciju komada"], correct: [0, 1, 3] },
+        { q: "Zašto se za plinsko zavarivanje isključivo koristi acetilen (C2H2) u kombinaciji s kisikom?", options: ["Jer je najjeftiniji plin na tržištu", "Postiže najveću temperaturu plamena (oko 3200 °C)", "Daje najveću brzinu sagorijevanja pri omjeru 1:1", "Ne može eksplodirati ni pod kojim uvjetima"], correct: [1, 2] },
+        { q: "Kolike su temperature plamena acetilena i propan-butana?", options: ["Acetilen postizava oko 3200 °C", "Propan-butan postizava oko 2800 °C", "Acetilen postizava 5000 °C", "Oba plina daju jednaku temperaturu od 1500 °C"], correct: [0, 1] },
+        { q: "Smijemo li bocu acetilena isprazniti do kraja?", options: ["Da, sve dok tlak ne padne na 0 bara", "Nikada, mora ostati preostali tlak", "Potrebno je ostaviti barem 2 bar (kg/cm²)", "Smijemo ako je boca u položenom položaju"], correct: [1, 2] },
+        { q: "Koliki su radni tlakovi acetilena i kisika kod plinskog zavarivanja?", options: ["Acetilen 50 bara, kisik 100 bara", "Acetilen do 1,5 bara", "Kisik 2 do 3 bara (ovisno o plameniku)", "Oba plina imaju radni tlak od 150 bara"], correct: [1, 2] },
+        { q: "U kojoj je smjesi zraka/kisika acetilen eksplozivan?", options: ["Samo iznad 90% udjela acetilena", "Isključivo u točnom omjeru 50-50%", "U širokom rasponu smjese sa zrakom", "U udjelu od 2,3% do 82% acetilena u zraku"], correct: [2, 3] },
+        { q: "Prema kojoj se normi definira intermitencija (Duty Cycle) uređaja za zavarivanje i pri kojoj temperaturi okoline?", options: ["Prema normi HRN EN ISO 60974-1", "Pri temperaturi okoline od 40 °C", "U vremenskom ciklusu od 10 minuta", "Prema normi ISO 9001 pri 20 °C"], correct: [0, 1, 2] },
+        { q: "Koliko vremena može raditi uređaj s 100% intermitencije?", options: ["Točno 10 minuta nakon čega se gasi", "Kontinuirano bez prekida pri zadanoj struji", "Samo 6 minuta unutar 10-minutnog intervala", "Maksimalno 1 sat dnevno"], correct: [1] },
+        { q: "Koji izvori struje mogu automatski kompenzirati pad napona u mreži?", options: ["Tranzistorski i tiristorski uređaji", "Invertorski izvori struje (SCR)", "Klasični rotacijski pretvarači s četkicama", "Obični transformatori s pomičnom kotvom"], correct: [0, 1] },
+        { q: "Koja se vrsta struje obavezno koristi kod ručnog TIG zavarivanja aluminija i magnezija?", options: ["Istosmjerna struja (DC-)", "Izmjenična struja (AC)", "Struja koja omogućuje katodno čišćenje oksida", "Mrežna struja bez ispravljača"], correct: [1, 2] },
+        { q: "Kako se priprema volframova elektroda za TIG zavarivanje istosmjernom strujom (DC-) visokolegiranih čelika?", options: ["Tupo se odsiječe kliještima pod 90°", "Zaoštrava se brušenjem na vrh", "Tragovi brušenja moraju biti uzdužni (u smjeru osi)", "Elektroda se ne smije brusiti"], correct: [1, 2] },
+        { q: "Kakvo je zagrijavanje kod TIG zavarivanja kada je elektroda na minus polu (DC-)?", options: ["30% topline se oslobađa na elektrodi", "70% topline se oslobađa na radnom komadu", "Dobiva se duboka i uska penetracija", "Cijela se toplina troši na zaštitni plin"], correct: [0, 1, 2] },
+        { q: "Koliki je preporučeni protok zaštitnog plina kod MAG zavarivanja?", options: ["1 do 3 l/min", "10 do 25 l/min", "Približno 10 puta veći od promjera žice u mm", "Točno 100 l/min"], correct: [1, 2] },
+        { q: "Kakav je rezultat rada kod lijeve, a kakav kod desne tehnike kod MAG zavarivanja?", options: ["Lijeva tehnika daje plići i širi zavar", "Desna tehnika daje dublju penetraciju i uži zavar", "Obje tehnike daju potpuno identičan rezultat", "Desna tehnika se primjenjuje samo na plastici"], correct: [0, 1] },
+        { q: "Zašto je kod MAG zavarivanja moguće postići visoku produktivnost (2-4 kg/h depozita i više), dok je kod REL-a to puno teže?", options: ["Zbog visoke gustoće struje na tankoj žici", "Zbog kontinuiranog automatskog dovođenja žice", "Zbog korištenja jeftinije struje iz mreže", "Zbog izostanka upotrebe zaštitnog plina"], correct: [0, 1] },
+        { q: "Što se događa s plinom u električnom luku kod MAG zavarivanja (npr. disocijacija CO2) i zašto žica mora imati dezoksidante?", options: ["CO2 disocira u luku na CO i O (kisik)", "Oslobođeni kisik zahtijeva dezoksidante u žici", "Dezoksidansi u žici su prvenstveno Silicij (Si) i Mangan (Mn)", "Plin se hladi i pretvara u tekuću vodu"], correct: [0, 1, 2] },
+        { q: "Smije li se električni luk kod REL zavarivanja uspostavljati van kratera?", options: ["Da, poželjno je svuda po ploči", "Ne smije izvan žlijeba ili kratera", "Može uzrokovati nagli termički šok i mikropukotine", "Smije se uspostavljati bilo gdje ako je elektroda bazična"], correct: [1, 2] },
+        { q: "Kolika je minimalna temperatura okoline na kojoj smijemo zavarivati REL postupkom?", options: ["Do -50 °C bez ikakvih ograničenja", "Ne preporučuje se zavarivanje ispod 0 °C", "-5 °C je krajnja granica uz predgrijavanje", "Temperatura okoline nema utjecaja na čelik"], correct: [1, 2] },
+        { q: "Koje su osnovne karakteristike bazične obloge kod REL elektroda?", options: ["Zahtijevaju obavezno sušenje prije upotrebe", "Daju žilav metal zavara s malo vodika", "Češće se koriste na istosmjernoj struji (DC+)", "Koriste se isključivo na izmjeničnoj struji"], correct: [0, 1, 2] },
+        { q: "Kako se kod EPP (zavarivanje pod praškom) očituje visina električnog luka?", options: ["Visina luka direktno se očituje preko napona", "Promjena duljine luka uzrokuje skakanje napona", "Preko promjene boje svjetlosti taline", "Preko brzine kretanja kolica po tračnici"], correct: [0, 1] },
+        { q: "Što je to 'šentiranje' (shunting) kod elektrootpornog točkastog zavarivanja?", options: ["Gubitak dijela struje zavarivanja", "Prolazak struje kroz susjednu već izvedenu točku", "Pucanje elektrode uslijed sile pritiska", "Kratki spoj na primaru transformatora"], correct: [0, 1] },
+        { q: "Koliko iznosi trajanje jedne periode kod elektrootpornog zavarivanja (izmjenična struja 50 Hz)?", options: ["Točno 1 sekunda", "0,02 sekunde", "20 milisekundi", "0,0001 milisekundi"], correct: [1, 2] },
+        { q: "Što predstavlja oznaka 111 prema normi ISO 4063?", options: ["TIG zavarivanje", "Ručno lučno zavarivanje obloženom elektrodom", "REL postupak zavarivanja", "EPP zavarivanje pod praškom"], correct: [1, 2] },
+        { q: "Što predstavlja oznaka 131 prema normi ISO 4063?", options: ["MIG zavarivanje punom žicom u inertnom plinu", "MAG zavarivanje u aktivnom plinu", "TIG zavarivanje", "Plazma rezanje"], correct: [0] },
+        { q: "Što predstavlja oznaka 135 prema normi ISO 4063?", options: ["MIG zavarivanje aluminija", "MAG zavarivanje punom žicom u aktivnom plinu", "REL zavarivanje", "Zavarivanje pod praškom"], correct: [1] },
+        { q: "Što predstavlja oznaka 136 prema normi ISO 4063?", options: ["TIG zavarivanje s popunom", "MIG zavarivanje punom žicom", "MAG zavarivanje praškom punjenom žicom u aktivnom plinu", "Plinsko zavarivanje acetilenom"], correct: [2] },
+        { q: "Što predstavlja oznaka 141 prema normi ISO 4063?", options: ["MAG zavarivanje", "EPP zavarivanje", "TIG zavarivanje netaljivom volframovom elektrodom u inertnom plinu", "Lučno zavarivanje punjenom elektrodom"], correct: [2] },
+        { q: "Što predstavlja oznaka 121 prema normi ISO 4063?", options: ["TIG postupak", "Plazma rezanje", "EPP zavarivanje pod praškom s jednom punom žičanom elektrodom", "Plinsko zavarivanje"], correct: [2] },
+        { q: "Što predstavlja oznaka 311 prema normi ISO 4063?", options: ["Zavarivanje plazmom", "Zavarivanje elektronskim mlazom", "Plinsko zavarivanje kisik-acetilenom", "Elektrootporno zavarivanje"], correct: [2] },
+        { q: "Što predstavlja oznaka 21 prema normi ISO 4063?", options: ["Šavno zavarivanje", "Bradavičasto zavarivanje", "Sučeljeno zavarivanje", "Točkasto elektrootporno zavarivanje"], correct: [3] },
+        { q: "Koja je uloga porozne mase (npr. monolitne mase) u boci za acetilen?", options: ["Povećava težinu boce radi stabilnosti", "Dijeli volumen boce na sitne kapilare", "Sprječava širenje eventualnog raspadanja acetilena", "Filtrira kisik pri punjenju"], correct: [1, 2] },
+        { q: "Zašto navoj na priključku boce za acetilen ima lijevi navoj?", options: ["Osigurava sigurnost pri spajanju", "Sprječava zamjenu opreme s bocama za kisik ili druge plinove", "Omogućuje lakše odvrtanje bez alata", "Boce se pune u smjeru kazaljke na satu"], correct: [0, 1] },
+        { q: "Koje je boje boca za acetilen prema EN normama označavanja boca?", options: ["Plava", "Crna", "Siva", "Smeđa (Kestenjasta - Maroon)"], correct: [3] },
+        { q: "Koje je boje boca za kisik prema EN normama označavanja boca?", options: ["Zelena", "Crvena", "Bijela (rame boce)", "Žuta"], correct: [2] },
+        { q: "Koje je boje boca za argon prema EN normama označavanja boca?", options: ["Plava", "Smeđa", "Srebrna", "Tamno zelena (rame boce)"], correct: [3] },
+        { q: "Koje je boje boca za CO2 prema EN normama označavanja boca?", options: ["Žuta", "Crvena", "Siva", "Bijela"], correct: [2] },
+        { q: "Kakav plamen nastaje pri omjeru C2H2 : O2 = 1 : 1.1 do 1.15?", options: ["Oksidirajući plamen", "Reducirajući plamen", "Hladni plamen", "Neutralni plamen"], correct: [3] },
+        { q: "Za zavarivanje kojih se materijala koristi reducirajući (karburirajući) plinski plamen?", options: ["Bakar i njegove legure", "Lijevano željezo i visokoaluminijske legure", "Navarivanje tvrdim legurama", "Niskougljični čelici"], correct: [1, 2] },
+        { q: "Za zavarivanje kojih se materijala koristi oksidirajući plinski plamen?", options: ["Aluminijske cijevi", "Mjed (mesing) i neke bronce", "Materijali gdje treba spriječiti isparavanje cinka", "Visoko ugljični čelici"], correct: [1, 2] },
+        { q: "Što je to katodno čišćenje (razbijanje oksida) kod zavarivanja aluminija?", options: ["Bombardiranje površine aluminija teškim pozitivnim ionima argona", "Pojavljuje se kada je elektroda na pozitivnom polu (DC+ ili AC ciklus)", "Razbijanje čvrstog sloja Al2O3 tijekom zavarivanja", "Čišćenje površine kemijskim otapalima prije rada"], correct: [0, 1, 2] },
+        { q: "Zašto se pri TIG zavarivanju nehrđajućih čelika izbjegava čisti ugljični dioksid?", options: ["Jer uzrokuje pougljičenje metala zavara", "Jer dolazi do gubitka otpornosti na koroziju", "Jer je plin previše skup u nabavi", "Jer plin eksplodira u dodiru s niklom"], correct: [0, 1] },
+        { q: "Koja je glavna uloga fluksa (praška) kod tvrdog lemljenja?", options: ["Otapanje postojećih oksida na površini", "Sprječavanje stvaranja novih oksida tijekom zagrijavanja", "Povećanje mase lemljenog spoja", "Smanjenje radne temperature peći"], correct: [0, 1] },
+        { q: "Što je to kvašenje (wetting) kod lemljenja?", options: ["Pranje spoja vodom nakon rada", "Sposobnost tekućeg lema da se razlije po površini", "Prijanjanje lema na čistu površinu osnovnog metala", "Hlađenje lema u uljnoj kupki"], correct: [1, 2] },
+        { q: "Koliki mora biti kut kvašenja theta (θ) za dobro kvašenje pri lemljenju?", options: ["Što manji kut kvašenja", "θ < 30° (idealno blizu 0°)", "Točno 90° do 180°", "Kut kvašenja nije bitan"], correct: [0, 1] },
+        { q: "Koje su osnovne komponente epoksidnih dvokomponentnih ljepila?", options: ["Voda i cement", "Smola", "Utvrđivač", "Aceton i alkohol"], correct: [1, 2] },
+        { q: "Koje se vrste naprezanja najviše trebaju izbjegavati kod lijepljenih spojeva?", options: ["Smična naprezanja duž ravnine", "Naprezanja na odljepljivanje (peeling)", "Naprezanja na raslojavanje", "Tlačna naprezanja po cijeloj površini"], correct: [1, 2] },
+        { q: "Koji je najbolji oblik spoja za nosive lijepljene konstrukcije?", options: ["Sučeljeni I-spoj na tankom limu", "Preklopni spoj", "Spoj s velikom površinom preklapanja", "Kutni spoj bez ikakvog ojačanja"], correct: [1, 2] },
+        { q: "Što je to STT (Surface Tension Transfer) postupak zavarivanja?", options: ["Modificirani MAG postupak zavarivanja u kratkom spoju", "Postupak s neovisnim elektroničkim upravljanjem strujom", "Tehnologija za smanjenje unosa topline i prskanja", "Zavarivanje plazmenom mlaznicom u vakuumu"], correct: [0, 1, 2] },
+        { q: "Koja je osnovna prednost STT postupka kod izrade korijenskih prolaza cijevi?", options: ["Izvrsno premošćivanje zračnosti (zazora)", "Izvođenje korijena bez opasnosti od prokapljivanja", "Rad bez potrebe za podložnom pločicom", "Rad bez ikakvog zaštitnog plina"], correct: [0, 1, 2] },
+        { q: "Kako se naziva postupak zavarivanja elektroda pod troskom koji se izvodi u vertikalnom položaju s bakrenim kliznim kalupima?", options: ["EPP postupak", "Elektroslag Welding (ESW)", "Elektro-pod-troskom zavarivanje", "FCM zavarivanje"], correct: [1, 2] },
+        { q: "Za koje je debljine limova prvenstveno namijenjeno ESW (zavarivanje pod elektrotroskom)?", options: ["Za tanke limove od 0.5 mm do 2 mm", "Za izrazito velike debljine (preko 50 mm)", "Za debljine do nekoliko stotina mm u jednom prolazu", "Za spajanje plastičnih cijevi"], correct: [1, 2] },
+        { q: "Koja je glavna karakteristika strmopadajuće (CC - Constant Current) statičke karakteristike izvora struje?", options: ["Promjena struje od 100A za svaki volt", "Velika promjena napona pri promjeni duljine luka", "Vrlo mala promjena struje zavarivanja pri promjeni duljine luka", "Konstantan napon neovisno o opterećenju"], correct: [1, 2] },
+        { q: "Za koje se postupke zavarivanja obavezno koristi izvor s strmopadajućom (CC) karakteristikom?", options: ["REL zavarivanje", "TIG zavarivanje", "MIG/MAG zavarivanje", "Točkasto elektrootporno zavarivanje"], correct: [0, 1] },
+        { q: "Za koje se postupke zavarivanja koristi izvor s ravnom/blagopadajućom (CV - Constant Voltage) karakteristikom?", options: ["REL ručno zavarivanje", "MIG/MAG zavarivanje", "EPP zavarivanje", "Plinsko zavarivanje"], correct: [1, 2] },
+        { q: "Što omogućuje ravna (CV) karakteristika izvora u MIG/MAG postupku zavarivanja?", options: ["Samo-regulaciju duljine električnog luka", "Automatsku stabilizaciju pri promjeni brzine žice ili udaljenosti pištolja", "Ručnu regulaciju napona od strane zavarivača u milisekundi", "Eliminaciju potrebe za uzemljenjem"], correct: [0, 1] },
+        { q: "Što je to napon praznog hoda (Open Circuit Voltage - OCV)?", options: ["Napon mrežnog priključka", "Napon na stezaljkama izvora kada uređaj radi", "Napon dok električni luk nije zapaljen", "Pad napona u kabelu za masu"], correct: [1, 2] },
+        { q: "Koja je gornja dopuštena granica napona praznog hoda za izvore izmjenične struje (AC) prema normama radi zaštite zavarivača?", options: ["220 V", "48 V do 113 V (ovisno o uvjetima okoline)", "Tipično do 68 V ili 80 V efektivno", "500 V"], correct: [1, 2] },
+        { q: "Što označava oznaka S (ili ranije K) na izvoru struje za zavarivanje?", options: ["Odobrenje za rad u uvjetima povećanog električnog rizika", "Sigurnost pri radu u skučeni prostorima i pod vlagom", "Uređaj je namijenjen samo za suhe radionice", "Uređaj služi za zavarivanje srebra"], correct: [0, 1] },
+        { q: "Koja je uloga prigušnice (induktiviteta) u izvoru struje za MAG zavarivanje?", options: ["Ograničava brzinu porasta struje kratkog spoja", "Smanjuje prskanje i stabilizira luk", "Povećava frekvenciju na 100 kHz", "Hladi transformatorsko ulje"], correct: [0, 1] },
+        { q: "Što su to invertorski izvori struje za zavarivanje?", options: ["Uređaji koji mrežni napon ispravljaju pa tranzistorima pretvaraju u visoku frekvenciju", "Uređaji koji struju visoke frekvencije transformiraju i ponovno ispravljaju", "Stari rotacijski generatori s dizelskim motorom", "Obični transformatori s drvenom kotvom"], correct: [0, 1] },
+        { q: "Zašto su invertorski izvori znatno lakši i manji od klasičnih transformatorskih izvora iste snage?", options: ["Povećanjem frekvencije smanjuju se dimenzije transformatora", "Smanjuje se masa transformatora i prigušnice", "Nemaju nikakvih bakrenih dijelova u kućištu", "Izrađuju se isključivo od plastike"], correct: [0, 1] },
+        { q: "Što je to 'Synergic' upravljanje kod MIG/MAG uređaja?", options: ["Sustav gdje korisnik odabire samo osnovni parametar (npr. debljinu lima)", "Mikroprocesorsko automatsko podešavanje ostalih parametara zavarivanja", "Mogućnost da dva zavarivača rade na istom aparatu", "Upravljanje aparatom preko glasovnih naredbi"], correct: [0, 1] },
+        { q: "Koji je osnovni nedostatak rutilnih elektroda u usporedbi s bazičnim?", options: ["Teže paljenje električnog luka", "Manja žilavost metala zavara pri niskim temperaturama", "Veći sadržaj vodika u metalu zavara", "Nemogućnost rada na izmjeničnoj struji"], correct: [1, 2] },
+        { q: "Koji je osnovni sastojak obloge celuloznih elektroda?", options: ["Organske tvari (celuloza)", "Sastojci koji izgaranjem stvaraju veliku količinu zaštitnih plinova (CO, CO2, H2)", "Rutil i kvarcni pijesak", "Kalcijev fluorid i karbonat"], correct: [0, 1] },
+        { q: "Koje su karakteristike elektroda s dodatkom željeznog praha u oblogu (visoko-produktivne elektrode)?", options: ["Povećani faktor iskorištenja (preko 100% do 160%)", "Dublja penetracija i brže popunjavanje žlijeba", "Mogućnost zavarivanja pod vodom bez opreme", "Smanjena brzina taljenja žice"], correct: [0, 1] },
+        { q: "Kako glasi formula za unos topline (Heat Input - Q) pri lučnom zavarivanju?", options: ["Q = U * I * t", "Q = (k * U * I / v) * 10^-3 [kJ/mm]", "Q = m * c * dT", "Q = I^2 * R"], correct: [1] },
+        { q: "Koliko iznosi koeficijent toplinskog iskorištenja (k) za TIG postupak prema normi EN ISO 13916 / EN 1011-1?", options: ["0.8", "1.0", "0.6", "0.3"], correct: [2] },
+        { q: "Koliko iznosi koeficijent toplinskog iskorištenja (k) za REL postupak?", options: ["0.6", "0.8", "1.0", "0.5"], correct: [1] },
+        { q: "Koliko iznosi koeficijent toplinskog iskorištenja (k) za MIG/MAG postupak?", options: ["0.6", "1.0", "0.8", "0.4"], correct: [2] },
+        { q: "Koliko iznosi koeficijent toplinskog iskorištenja (k) za EPP postupak pod praškom?", options: ["0.8", "1.0", "0.6", "0.5"], correct: [1] },
+        { q: "Koji plin ima izrazito reducirajući efekt te sprječava pojavu oksida pri TIG zavarivanju nehrđajućih čelika?", options: ["Kisik u argonu", "Ugljični dioksid", "Vodik (H2) u argonu", "Helij"], correct: [2] },
+        { q: "Što je to 'poroznost' u metalu zavara i čime je najčešće uzrokovana?", options: ["Uključci troske u korijenu", "Šupljine u metalu zavara", "Zarobljavanje plinova (H2, N2, CO) tijekom skrućivanja", "Pukotine u ZUT-u"], correct: [1, 2] },
+        { q: "Što uzrokuje pojavu ugorina (undercut) uz rub zavara?", options: ["Prevelika struja zavarivanja", "Previsok napon luka", "Nepravilan kut vođenja pištolja/elektrode", "Premala struja zavarivanja"], correct: [0, 1, 2] },
+        { q: "Koja je uloga praška kod zavarivanja pod praškom (EPP)?", options: ["Zaštita taline od zraka i rafiniranje metala", "Legiranje, oblikovanje zavara i toplinska izolacija", "Samo za ukras i pokrivanje luka", "Smanjenje ukupne mase konstrukcije"], correct: [0, 1] },
+        { q: "Kako se praškovi za EPP dijele prema načinu proizvodnje?", options: ["Krupni i sitni praškovi", "Taljeni praškovi (fused)", "Aglomerirani ili vezani praškovi (bonded)", "Mokri i suhi praškovi"], correct: [1, 2] },
+        { q: "Koje su osnovne prednosti aglomeriranih praškova u odnosu na taljene kod EPP-a?", options: ["Mogućnost dodavanja legirajućih elemenata i deoksidanasa", "Manja nasipna masa", "Potpuna neosjetljivost na vlagu bez sušenja", "Upotreba na neograničeno visokim strujama od 5000A"], correct: [0, 1] },
+        { q: "Zašto se EPP prašak mora sušiti prije upotrebe ako je aglomeriran?", options: ["Radi uklanjanja vlage", "Radi sprječavanja pojave pora", "Radi sprječavanja nastanka vodikovih pukotina", "Da bi prašak promijenio boju u bijelu"], correct: [0, 1, 2] },
+        { q: "Koja je glavna svrha korištenja više žica (Multi-wire / Tandem) kod EPP zavarivanja?", options: ["Manja potrošnja struje iz mreže", "Znatno povećanje brzine zavarivanja", "Povećanje količine nataloženog metala (depozita)", "Zavarivanje bez potrebe za praškom"], correct: [1, 2] },
+        { q: "Koji se polaritet najčešće koristi pri EPP zavarivanju jednom žicom za postizanje duboke penetracije?", options: ["Istosmjerna struja (DC)", "Elektroda na pozitivnom polu (DC+)", "Istosmjerna struja, elektroda na negativnom polu (DC-)", "Izmjenična struja visoke frekvencije"], correct: [0, 1] },
+        { q: "Što je to 'Ključanica' (Keyhole) efekt kod zavarivanja plazmom ili laserom?", options: ["Formiranje otvorenog kanala ispunjenog parama metala", "Kanal prolazi kroz cijelu debljinu materijala", "Omogućuje duboku i usku penetraciju", "Začepljenje mlaznice plazme"], correct: [0, 1, 2] },
+        { q: "Koja je razlika između prelaznog i neprelaznog luka kod zavarivanja/rezanja plazmom?", options: ["Kod prelaznog luka luk gori između elektrode i radnog komada", "Kod neprelaznog luka luk gori između elektrode i mlaznice", "Prelazni luk se koristi samo za plastiku", "Neprelazni luk ne troši električnu energiju"], correct: [0, 1] },
+        { q: "Za koje se primjene koristi neprelazni luk plazme?", options: ["Za rezanje debelih čeličnih ploča", "Za brizganje (prskanje) materijala plazmom", "Za obradu nemetala", "Za duboko zavarivanje tračnica"], correct: [1, 2] },
+        { q: "Što je to FSW (Friction Stir Welding - zavarivanje trenjem s miješanjem)?", options: ["Postupak spajanja u čvrstom stanju", "Spajanje pomoću rotirajućeg alata", "Alat gnječi i miješa omekšani materijal duž spoja", "Zavarivanje brusnom ploče po čeliku"], correct: [0, 1, 2] },
+        { q: "Koje su osnovne prednosti FSW postupka?", options: ["Nema taljenja materijala, pora ni pukotina skrućivanja", "Niske deformacije i izvrsna mehanička svojstva", "Mogućnost izvođenja ručno bez ikakvih strojeva", "Mogućnost zavarivanja drva i betona"], correct: [0, 1] },
+        { q: "Koja je uloga alata kod FSW postupka?", options: ["Rame alata stvara toplinu trenjem i drži materijal", "Trn (pin) alata miješa omekšani materijal", "Alat služi samo za odrezivanje viška lima", "Alat dovodi električnu struju u spoj"], correct: [0, 1] },
+        { q: "Što je to Zavarivanje Elektronskim Mlazom (EBW - Electron Beam Welding)?", options: ["Postupak gdje se snop brzih elektrona usmjerava na radni komad", "Postupak koji se najčešće izvodi u vakuumskoj komori", "Zavarivanje pomoću akumulatora iz automobila", "Elektrootporno zavarivanje limova"], correct: [0, 1] },
+        { q: "Zašto se zavarivanje elektronskim mlazom (EBW) najčešće izvodi u visokom vakuumu?", options: ["Da se spriječi raspršivanje elektronskog snopa u zraku", "Da se osigura čistoća taline bez oksidacije", "Da se spriječi zamrzavanje radnog komada", "Zbog zaštite radnika od buke"], correct: [0, 1] },
+        { q: "Što je to Laser (skraćenica od Light Amplification by Stimulated Emission of Radiation)?", options: ["Aparat za plazma rezanje", "Izvor koherentne i monokromatske zrake", "Usmjerena svjetlosna zraka visoke gustoće energije", "Vrsta optičkog kabela za internet"], correct: [1, 2] },
+        { q: "Koji su najčešći tipovi lasera u industriji zavarivanja i rezanja?", options: ["CO2 plinski laseri", "Nd:YAG krutokovni laseri", "Vlaknasti (Fiber) i diodni laseri", "Helij-Neonski laseri za igračke"], correct: [0, 1, 2] },
+        { q: "Zašto Nd:YAG i Fiber laseri imaju prednost pri vođenju zrake pomoću robota u odnosu na CO2 lasere?", options: ["Njihova valna duljina iznosi oko 1.06 µm", "Može ih se voditi kroz fleksibilna optička vlakna (svjetlovode)", "Uopće ne troše električnu energiju", "CO2 laser ne može rezati metal"], correct: [0, 1] },
+        { q: "Koja je valna duljina zračenja CO2 lasera?", options: ["1.06 µm", "10.6 µm", "Srednje infracrveno područje", "200 nm (ultraljubičasto)"], correct: [1, 2] },
+        { q: "Što je to eksplozijsko zavarivanje (Explosive Welding - EXW)?", options: ["Postupak spajanja u čvrstom stanju", "Detonacija eksploziva spaja dvije metalne ploče", "Spajanje se odvija velikom brzinom sudara", "Zavarivanje unutar motora s unutarnjim izgaranjem"], correct: [0, 1, 2] },
+        { q: "Za što se najčešće koristi eksplozijsko zavarivanje?", options: ["Za spajanje tankih žica u elektronici", "Za platiranje (oblaganje) velikih površina čeličnih ploča", "Nanošenje sloja nehrđajućeg čelika, titana ili aluminija na čelik", "Za zavarivanje plastičnih cijevi"], correct: [1, 2] },
+        { q: "Što je to ultrazvučno zavarivanje (Ultrasonic Welding - USW)?", options: ["Spajanje pod djelovanjem visokofrekventnih mehaničkih titranja", "Frekvencija rada kreće se od 10 do 75 kHz", "Spajanje se odvija pod pritiskom bez taljenja", "Zavarivanje zvučnim valovima unutar vode"], correct: [0, 1, 2] },
+        { q: "Za koje se materijale najviše primjenjuje ultrazvučno zavarivanje?", options: ["Tanke folije i spajanje žica u elektronici", "Baterijske članke i spajanje termoplastika", "Debeli čelični profili od 20 mm", "Tračnice za željeznicu"], correct: [0, 1] },
+        { q: "Što je to Sonotroda kod ultrazvučnog zavarivanja?", options: ["Spremnik za tekućinu", "Alat koji prenosi ultrazvučne vibracije", "Komponenta koja prenosi titraje s pretvarača na radni komad", "Generator visoke struje"], correct: [1, 2] },
+        { q: "Koja je razlika između mekog i tvrdog lemljenja u pogledu radne temperature?", options: ["Meko lemljenje se izvodi ispod 450 °C", "Tvrdo lemljenje se izvodi iznad 450 °C", "Meko lemljenje je na 1000 °C, a tvrdo na 100 °C", "Nema razlike u radnoj temperaturi"], correct: [0, 1] },
+        { q: "Što je to Visokotemperaturno lemljenje (High-temperature brazing)?", options: ["Tvrdo lemljenje bez uporabe fluksa", "Izvodi se u vakuumu ili zaštitnoj atmosferi", "Izvodi se na temperaturama iznad 900 °C", "Meko lemljenje u vodenoj kupki"], correct: [0, 1, 2] },
+        { q: "Koje se vrste lemova koriste za meko lemljenje u elektronici i instalacijama?", options: ["Legure na bazi kositra (Sn-Cu, Sn-Ag, Sn-Pb)", "Legure bakra i cinka (mesing)", "Srebrni lemovi visoke čvrstoće", "Čiste aluminijske žice"], correct: [0] },
+        { q: "Što su to aktivni lemovi i za što služe?", options: ["Lemovi koji sadrže aktivne elemente (npr. Titan - Ti)", "Omogućuju izravno lemljenje keramike i stakla", "Lemovi koji sami goru na zraku", "Meki lemovi za olovo"], correct: [0, 1] },
+        { q: "Što je to kapilarnost (kapilarni efekt) i o čemu ovisi pri lemljenju?", options: ["Sposobnost ulaženja tekućeg lema u uski zazor", "Djelovanje pod utjecajem površinske napetosti", "Ovisi o čistoći površine i veličini zazora", "Isparavanje lema pod utjecajem vjetra"], correct: [0, 1, 2] },
+        { q: "Koliki je optimalni zazor (prostor spoja) za kapilarno lemljenje u praksi?", options: ["1.0 mm do 5.0 mm", "0.05 mm do 0.2 mm", "Točno 10 mm", "0.001 mm (bez zazora)"], correct: [1] },
+        { q: "Što su to duromeri (termoreaktivni polimeri)?", options: ["Plastike koje se mogu višekratno taliti", "Plastike koje nakon umrežavanja grijanjem ne mogu omekšati", "Polimeri koji se NE MOGU zavarivati", "Gumeni materijali koji se rastežu 500%"], correct: [1, 2] },
+        { q: "Što su to termoplasti?", options: ["Polimeri koji zagrijavanjem omekšavaju i prelaze u viskozno stanje", "Polimeri koji hlađenjem očvrsnu", "Materijali koji SE MOGU zavarivati", "Polimeri koji izgoru čim se zagriju"], correct: [0, 1, 2] },
+        { q: "Koji su najčešći termoplastični materijali koji se zavaruju u praksi?", options: ["PE (Polietilen) i PP (Polipropilen)", "PVC (Polivinilklorid) i PVDF", "Epoksidne smole i poliuretani", "Bakelit i teflon"], correct: [0, 1] },
+        { q: "Što je to elektrofuzijsko zavarivanje PE cijevi?", options: ["Spajanje cijevi pomoću elektrofuzijske spojnice", "Spojnica u sebi ima ugrađenu električnu otpornu žicu", "Žica se zagrijava prolaskom električne struje", "Zavarivanje cijevi otvorenim električnim lukom"], correct: [0, 1, 2] },
+        { q: "Što je to zavarivanje plastike vrućim plinom (Hot Gas Welding)?", options: ["Zavarivanje plamenom acetilena", "Omekšavanje rubova mlazom zagrijanog zraka ili dušika", "Upotreba dodatne plastične žice pri spajanju", "Rezanje plastike plazmenom mlaznicom"], correct: [1, 2] },
+        { q: "Što je to zavarivanje plastike vrućim elementom (vrućom pločom)?", options: ["Grijanje plastike u pećnici", "Pritiskanje pripremljenih dijelova na zagrijanu metalnu ploču", "Spajanje dijelova pod pritiskom nakon odmicanja ploče", "Grijanje plastike sušilom za kosu"], correct: [1, 2] },
+        { q: "Što je to ZUT (Zona Utjecaja Topline - HAZ)?", options: ["Dio osnovnog materijala uz talinu koji nije rastaljen", "Područje u kojem su se pod utjecajem topline promijenila svojstva", "Područje u kojem se sakuplja troska", "Spremnik za otpadni materijal"], correct: [0, 1] },
+        { q: "Što je to 'ekvivalent ugljika' (Carbon Equivalent - CE ili CEV)?", options: ["Postotak čistog ugljena u peći", "Empirijska formula za preračunavanje utjecaja legirnih elemenata", "Mjerilo zakaljivosti i zavarljivosti čelika", "Formula za izračun cijene čelika"], correct: [1, 2] },
+        { q: "Ako je ekvivalent ugljika CE > 0.45%, kakva je zavarljivost čelika?", options: ["Izvrsna bez ikakvih mjera opreza", "Otežana zavarljivost", "Čelik je sklon zakaljivanju i hladnim pukotinama", "Zahtijeva obavezno predgrijavanje"], correct: [1, 2, 3] },
+        { q: "Što su to vodikove (hladne) pukotine i gdje se najčešće javljaju?", options: ["Pukotine u peći za sušenje", "Pukotine u ZUT-u ili metalu zavara", "Pukotine koje nastaju nakon hlađenja ispod 200 °C", "Nastaju uslijed djelovanja vodika, naprezanja i krtih struktura"], correct: [1, 2, 3] },
+        { q: "Koja tri uvjeta moraju biti istovremeno ispunjena za nastanak hladnih pukotina?", options: ["Prisutnost difundiranog vodika", "Zakaljena (krhka) mikrostruktura (npr. martenzit)", "Vlačna naprezanja u spoju", "Prevelika struja i vlažan zrak"], correct: [0, 1, 2] },
+        { q: "Koji su glavni izvori vodika u metalu zavara?", options: ["Čisti argon u boci", "Vlaga iz obloge elektrode ili praška", "Nečistoće (ulje, rđa) na površini lima", "Vlaga iz zaštitnog plina"], correct: [1, 2, 3] },
+        { q: "Kako se naziva ispitivanje žilavosti udarom s batom s nosom u obliku klatna?", options: ["Ispitivanje po Vickersu", "Charpy V-notch test", "Ispitivanje po Charpyju", "Ispitivanje po Rockwellu"], correct: [1, 2] },
+        { q: "Na kojoj se tipičnoj temperaturi često zahtijeva minimalni udarni rad loma (npr. 27 J ili 40 J) za čelike konstrukcija?", options: ["Na +500 °C", "Na -20 °C ili -40 °C", "Na 0 °C", "Točno na 0 K"], correct: [1, 2] },
+        { q: "Što je to NDT (Non-Destructive Testing)?", options: ["Ispitivanje kidanjem na kidalici", "Ispitivanje bez razaranja", "Metode kontrole kojima se ne oštećuje funkcionalnost komada", "Ispitivanje lomljenjem čekićem"], correct: [1, 2] },
+        { q: "Što je to VT (Visual Testing)?", options: ["Vlačno ispitivanje", "Vizualno ispitivanje", "Osnovna metoda NDT-a koja se obavezno provodi prva", "Vakuumsko ispitivanje"], correct: [1, 2] },
+        { q: "Koja je osnovna svrha penetrantnog ispitivanja (PT - Penetrant Testing)?", options: ["Otkrivanje dubokih unutrašnjih grešaka na 50 mm", "Otkrivanje nepravilnosti (pukotina, pora)", "Detekcija grešaka koje su OTVORENE prema površini", "Određivanje kemijskog sastava"], correct: [1, 2] },
+        { q: "Može li se magnetsko ispitivanje (MT - Magnetic Particle Testing) primijeniti na nehrđajući austenitni čelik (npr. 18/8 CrNi)?", options: ["DA, magnetska metoda radi na svim metalima", "NE", "Austenitni nehrđajući čelici NISU feromagnetski", "Samo uz primjenu izmjenične struje od 1000A"], correct: [1, 2] },
+        { q: "Koja se pojava koristi za otkrivanje grešaka kod magnetskog ispitivanja (MT)?", options: ["Promjena boje čelika pod utjecajem magneta", "Stvaranje rasipnog magnetskog polja na mjestu prekida", "Privlačenje čestica magnetskog praha na mjestu greške", "Zvuk koji ispušta magnet"], correct: [1, 2] },
+        { q: "Što je to Ultrazvučno ispitivanje (UT - Ultrasonic Testing)?", options: ["Slušanje rada aparata za zavarivanje", "Uvođenje zvučnih valova visoke frekvencije (0.5 do 15 MHz)", "Reflektiranje valova od unutarnjih grešaka", "Kontrola kvalitete pomoću zvučnika za glazbu"], correct: [1, 2] },
+        { q: "Što je to Piezoelektrični efekt i gdje se koristi kod UT-a?", options: ["Pojava pretvaranja električnog impulsa u mehaničke titraje (ultrazvuk)", "Pretvaranje mehaničkog titraja natrag u električni impuls", "Primjena u pretvaračima (ultrazvučnim kodama)", "Efekt širenja plina u boci"], correct: [0, 1, 2] },
+        { q: "Što je to Radiografsko ispitivanje (RT - Radiographic Testing)?", options: ["Ispitivanje radio stanica", "Ispitivanje prolaskom rendgenskog (X) ili gama (γ) zračenja", "Snimanje prolaznog zračenja na film ili digitalni detektor", "Snimanje zavara običnim fotoaparatom"], correct: [1, 2] },
+        { q: "Koja je glavna opasnost pri izvođenju radiografskog ispitivanja (RT)?", options: ["Opasnost od opekotina vrućim uljem", "Opasnost od štetnog ionizirajućeg zračenja po zdravlje", "Zahtijeva evakuaciju zone i zaštitne pregrade", "Opasnost od eksplozije vodenog mlaza"], correct: [1, 2] },
+        { q: "Koji su najčešći radioaktivni izotopi koji se koriste kao izvori gama zračenja u industrijskoj radiografiji (RT)?", options: ["Uranij-235 i Plutonij-239", "Iridij-192 (Ir-192)", "Kobalt-60 (Co-60)", "Radon-222 i Radij-226"], correct: [1, 2] },
+        { q: "Što je to WPS (Welding Procedure Specification)?", options: ["Atest radionice za dizalice", "Specifikacija postupka zavarivanja", "Službeni dokument koji zavarivaču daje upute za rad", "Certifikat za kvalitetu čelika"], correct: [1, 2] },
+        { q: "Što je to WPQR (Welding Procedure Qualification Record)?", options: ["Izvještaj o kvalifikaciji postupka zavarivanja", "Dokument kojim se bilježe rezultati ispitivanja probnih uzoraka", "Služi kao podloga za odobrenje WPS-a", "Dozvola za rad na visini"], correct: [0, 1, 2] },
+        { q: "Prema kojoj se normi provodi kvalifikacijsko ispitivanje zavarivača za ručno zavarivanje čelika?", options: ["EN ISO 9001", "EN ISO 9606-1", "EN ISO 14001", "EN 1090-2"], correct: [1] },
+        { q: "Prema kojoj se normi provodi kvalifikacijsko ispitivanje zavarivača za aluminij i aluminijske legure?", options: ["EN ISO 9606-1", "EN ISO 5817", "EN ISO 9606-2", "EN ISO 3834"], correct: [2] },
+        { q: "Koja norma definira razine prihvatljivosti nepravilnosti kod zavarivanja taljenjem za čelik, nikl i titan?", options: ["EN ISO 9001", "EN ISO 5817", "Norma s razinama B (stroga), C (srednja) i D (umjerena)", "ISO 4063"], correct: [1, 2] },
+        { q: "Koja norma definira razine prihvatljivosti nepravilnosti za aluminij i njegove legure?", options: ["EN ISO 5817", "EN ISO 10042", "EN ISO 9606-1", "ISO 3834"], correct: [1] },
+        { q: "Što propisuje norma EN ISO 14731?", options: ["Oblik i dimenzije žlijebova za zavarivanje", "Zadaće i odgovornosti osoblja za koordinaciju zavarivanja", "Definira uloge IWE, IWT i IWS osoblja", "Cijene zavarivačkih radova"], correct: [1, 2] },
+        { q: "Što je to Lamelarno kidanje (Lamellar Tearing)?", options: ["Pucanje strujnog kabela na aparatu", "Pucanje lima u obliku stepenica ispod zavara", "Nastaje uslijed naprezanja u smjeru debljine lima", "Povezano je s prisutnošću nekovinskih uključenja"], correct: [1, 2, 3] },
+        { q: "Kako se označava ispitivanje čelika na otpornost prema lamelarnom kidanju (Z-svojstva)?", options: ["Ispitivanjem po Vickersu", "Ispitivanjem kontrakcije poprečnog presjeka u smjeru debljine", "Oznakama Z15, Z25, Z35 prema EN 10164", "Ispitivanjem tvrdoće po Rockwellu"], correct: [1, 2] },
+        { q: "Što uzrokuje nastanak toplih pukotina (Hot Cracks / Solidification Cracks)?", options: ["Prevelika količina argona u zaštitnom plinu", "Prisutnost nisko-taljivih faza (npr. FeS) na granicama zrna", "Djelovanje naprezanja tijekom skrućivanja", "Predgrijavanje limova na 300°C"], correct: [1, 2] },
+        { q: "Kako se sprječava nastanak toplih pukotina pri zavarivanju nelegiranih i niskolegiranih čelika?", options: ["Povećanjem brzine zavarivanja na maksimum", "Ograničenjem sadržaja sumpora (S) i fosfora (P)", "Održavanjem povoljnog omjera Mn/S (>20)", "Upotrebom čistog kisika kao zaštitnog plina"], correct: [1, 2] },
+        { q: "Što je to Interkristalna korozija (Intergranular Corrosion) kod nehrđajućih čelika?", options: ["Korozija koja napada samo površinu lica zavara", "Selektivna korozija duž granica zrna", "Nastaje uslijed izlučivanja kromovih karbida Cr23C6", "Javlja se pri zadržavanju na temp. 450-850°C"], correct: [1, 2, 3] },
+        { q: "Kako se sprječava interkristalna korozija kod nehrđajućih austenitnih čelika?", options: ["Povećanjem postotka ugljika na 1%", "Primjenom 'L' kvaliteta čelika (C < 0.03%)", "Primjenom stabiliziranih čelika (s Ti ili Nb)", "Zavarivanjem bez ikakvog plina"], correct: [1, 2] },
+        { q: "Koja je glavna uloga Titana (Ti) ili Niobija (Nb) u stabiliziranim nehrđajućim čelicima (npr. AISI 321, AISI 347)?", options: ["Povećanje gustoće čelika", "Vezivanje ugljika u stabilne karbide (TiC, NbC)", "Sprječavanje izlučivanja kromovih karbida i siromašenja kroma", "Smanjenje točke taljenja za 500°C"], correct: [1, 2] },
+        { q: "Koji se postupak zavarivanja najčešće primjenjuje za spajanje tračnica na terenu s iznimno brzom kemijskom reakcijom?", options: ["TIG zavarivanje", "Aluminotermijsko zavarivanje", "Termitno zavarivanje", "Laser-hibridno zavarivanje"], correct: [1, 2] },
+        { q: "Koji su glavni reaktanti u termitnoj smjesi za aluminotermijsko zavarivanje tračnica?", options: ["Prah cinka i bakra", "Prah aluminija (Al)", "Prah željeznog oksida (Fe2O3 ili Fe3O4)", "Sol i pijesak"], correct: [1, 2] },
+        { q: "Do koje temperature doseže egzotermna reakcija pri termitnom zavarivanju tračnica?", options: ["Oko 800 °C", "Oko 2400 °C do 2500 °C", "Preko 10000 °C", "Točno 1200 °C"], correct: [1] },
+        { q: "Što je to Zavarivanje Svornjaka (Stud Welding)?", options: ["Zavarivanje vijaka ručnom elektrodom", "Lučni postupak spajanja svornjaka, trna ili šipke na lim", "Spajanje koje se izvede u dijelu sekunde", "Lijepljenje matica na lim"], correct: [1, 2] },
+        { q: "Koji se najčešći načini zavarivanja svornjaka primjenjuju u industriji?", options: ["Plinsko zavarivanje svornjaka", "Lučno zavarivanje svornjaka s keramičkim prstenom", "Zavarivanje svornjaka kondenzatorskim pražnjenjem", "Zavarivanje svornjaka ultrazvukom"], correct: [1, 2] },
+        { q: "Koja je uloga keramičkog prstena kod lučnog zavarivanja svornjaka?", options: ["Zadržavanje rastaljenog metala oko svornjaka", "Oblikovanje krunice zavara i zaštita od atmosfere", "Služi kao izolator od strujnog udara za radnika", "Nema nikakvu funkciju i baca se prije radnje"], correct: [0, 1] },
+        { q: "Što je to CMT (Cold Metal Transfer) postupak kod MIG/MAG zavarivanja?", options: ["Zavarivanje metala na temperaturi ispod 0°C", "Modificirani postupak s mehaniziranim povratnim kretanjem žice", "Kratki spoj s minimalnim unosom topline", "Ručno nanošenje hladnog lema"], correct: [1, 2] },
+        { q: "Koje su osnovne primjene CMT postupka?", options: ["Duboko zavarivanje tračnica", "Zavarivanje iznimno tankih limova (od 0.5 mm)", "Spajanje čelika i aluminija (MIG lemljenje)", "Rad bez prskanja metala"], correct: [1, 2, 3] },
+        { q: "Što je to MIG Lemljenje (MIG Brazing)?", options: ["MIG zavarivanje aluminijske žice pod vodom", "Elektrolučno spajanje žicom na bazi bakra (npr. CuSi3)", "Postupak pri kojem se osnovni lim NE TALI", "Lijepljenje pocinčanih limova"], correct: [1, 2] },
+        { q: "Zašto je MIG lemljenje žicom CuSi3 iznimno popularno u automobilskoj industriji za pocinčane limove?", options: ["Niska temperatura taljenja lema ne uništava sloj cinka", "Smanjuje se opasnost od pojave korozije i prskanja", "Žica od bakra je tri puta jeftinija od čelika", "Radi se bez ikakvog zaštitnog plina"], correct: [0, 1] },
+        { q: "Koji je najčešći zaštitni plin za MIG lemljenje žicom CuSi3?", options: ["100% CO2", "Zrak", "Čisti argon (Ar 100%)", "Argon + 20% CO2"], correct: [2] },
+        { q: "Što je to Platiranje (Cladding / Surfacing) zavarivanjem?", options: ["Spajanje dva lima preklopno", "Nanošenje sloja dodatnog materijala na osnovni materijal", "Sloj je otporan na koroziju ili habanje", "Rezanje debelih ploča"], correct: [1, 2] },
+        { q: "Koji se postupci zavarivanja najčešće koriste za platiranje velikih površina u procesnoj industriji (npr. reaktora)?", options: ["Ručno TIG zavarivanje", "EPP postupak s trakastom elektrodom", "Electroslag Strip Cladding", "Plinsko zavarivanje"], correct: [1, 2] },
+        { q: "Što je to ZUT narastanje zrna (Grain Growth Zone) u neposrednoj blizini linije fuzije?", options: ["Područje gdje se tali dodatni materijal", "Područje u ZUT-u zagrijano iznad 1100 °C", "Područje u kojem zrna austenita izrazito narastu", "Pojava koja drastično smanjuje žilavost"], correct: [1, 2, 3] },
+        { q: "Što je to Normalizacija (Normalizing) i kako utječe na ZUT čeličnog zavara?", options: ["Naglo hlađenje zavara u hladnoj vodi", "Toplinska obrada zagrijavanjem iznad Ac3 i hlađenjem na zraku", "Obrada koja usitnjava zrno i ujednačava strukturu ZUT-a", "Grijanje zavara plamenikom na 200°C"], correct: [1, 2] },
+        { q: "Koja je uloga Mangan (Mn) i Silicija (Si) u elektrodnoj žici za MAG zavarivanje ugljičnih čelika?", options: ["Služe za bojanje iskri u plavo", "Služe kao dezoksidansi koji reagiraju s kisikom", "Stvaraju okside koji plivaju u trosku", "Služe za legiranje metala zavara"], correct: [1, 2, 3] },
+        { q: "Zašto se pri MIG zavarivanju aluminija ne smiju koristiti zaštitni plinovi koji sadrže ugljični dioksid (CO2) ili kisik (O2)?", options: ["Jer plinovi stvaraju eksploziju u dodiru s pištoljem", "Uzrokuju jaku oksidaciju aluminija", "Uzrokuju stvaranje poroznosti i nestabilnost luka", "Mogu se slobodno koristiti bez posljedica"], correct: [1, 2] },
+        { q: "Koja se mješavina plinova primjenjuje za TIG i MIG zavarivanje debelih komada od aluminija radi postizanja većeg unosa topline?", options: ["Argon + 18% CO2", "Čisti dušik", "Mješavine Argona i Helija (npr. 50% Ar + 50% He)", "Mješavine 70% He + 30% Ar"], correct: [2, 3] },
+        { q: "Što je to Prokapljivanje (Burn-through) pri zavarivanju korijena?", options: ["Nedovoljno protaljivanje korijena", "Greška nastala uslijed prevelikog unosa topline ili zazora", "Pojava pri kojoj rastaljeni metal propadne kroz korijen", "Pucanje pištolja za zavarivanje"], correct: [1, 2] },
+        { q: "Što je to Nedostatak provara (Incomplete Penetration)?", options: ["Preveliko nadvišenje korijena", "Metal zavara nije prodro do dna žlijeba", "Nisu potpuno spojeni korijenski rubovi", "Prskanje kapljica izvan žlijeba"], correct: [1, 2] },
+        { q: "Što je to Nedostatak spajanja (Lack of Fusion)?", options: ["Pojava pora u metalu zavara", "Izostanak vezivanja između metala zavara i osnovnog metala", "Izostanak vezivanja između pojedinih prolaza (slojeva)", "Nezagrijana elektroda"], correct: [1, 2] },
+        { q: "Koja je razlika između nepravilnosti (imperfection) i greške (defect) u zavarenom spoju prema normama?", options: ["Nema nikakve razlike, to su sinonimi", "Nepravilnost je svako odstupanje od idealnog zavara", "Greška je nepravilnost koja prelazi granice prihvatljivosti", "Greška zahtijeva popravak ili odbacivanje komada"], correct: [1, 2, 3] },
+        { q: "Što je to 'Peening' (mehaničko čekićanje zavara)?", options: ["Udaranje po aparatu kad ne radi", "Lagano udaranje po površini zavara zaobljenim čekićem", "Unos tlačnih naprezanja u zavar", "Smanjenje vlačnih zaostalih naprezanja"], correct: [1, 2, 3] },
+        { q: "Zašto je iznimno opasno raditi peening na prvim (korijenskim) prolazima zavara?", options: ["Jer se tako uništava zaštitni plin", "Postoji opasnost od nastanka pukotina", "Korijenski sloj je tanak i krhak", "Može se slobodno raditi bez opasnosti"], correct: [1, 2] },
+        { q: "Što je to Korozija pod naprezanjem (Stress Corrosion Cracking - SCC)?", options: ["Odpadanje boje s ograde na kiši", "Pucanje materijala pod djelovanjem vlačnih naprezanja", "Pucanje uslijed djelovanja specifičnog korozijskog medija", "Trošenje elektroda na suncu"], correct: [1, 2] },
+        { q: "Koji su uvjeti potrebni za nastanak korozije pod naprezanjem (SCC)?", options: ["Osjetljiv materijal", "Prisutnost korozivnog medija (npr. kloridi, lužine)", "Prisutnost vlačnih (ili zaostalih) naprezanja", "Primjena rutilne elektrode na istosmjernoj struji"], correct: [0, 1, 2] },
+        { q: "Koji je osnovni princip zaštite na radu od opasnosti električnog udara kod aparata za zavarivanje?", options: ["Rad bez rukavica radi boljeg osjećaja", "Ispravno uzemljenje kućišta uređaja", "Besprijekorna izolacija kabela i pištolja", "Uporaba zaštitne obuće i rukavica"], correct: [1, 2, 3] },
+        { q: "Što je to VRD (Voltage Reduction Device) na aparatima za zavarivanje?", options: ["Sklop za smanjenje potrošnje plina", "Sigurnosni sklop na aparatu", "Smanjuje napon praznog hoda na ~12-24V dok se ne zavaruje", "Podiže napon čim elektroda dotakne radni komad"], correct: [1, 2, 3] },
+        { q: "Koje zračenje električnog luka najviše oštećuje oči zavarivača (uzrokuje tzv. 'bljesak' ili 'pijesak u očima')?", options: ["Infracrveno (IR) zračenje", "Gama zračenje", "Radio valovi", "Ultraljubičasto (UV) zračenje"], correct: [3] },
+        { q: "Koje oštećenje oka uzrokuje dugotrajno izlaganje Infracrvenom (IR) zračenju luka bez zaštite?", options: ["Privremeno crvenilo kože", "Oštećenje mrežnice oka", "Pojava mrene (katarakte) na leći oka", "Nema nikakvog utjecaja na oko"], correct: [1, 2] },
+        { q: "Zašto se skladište sa stlačenim plinskim bocama mora provjetravati i držati dalje od izvora topline?", options: ["Da boce ne bi pohđale izvana", "Sprječavanje nakupljanja opasnih eksplozivnih/zagušljivih plinova", "Sprječavanje porasta tlaka u bocama uslijed grijanja", "Nema potrebe za provjetravanjem"], correct: [1, 2] },
+        { q: "Kako se provjerava propusnost spojeva na plinskoj instalaciji (ventilima, crijevima)?", options: ["Otvorenim plamenom šibice", "Slušanjem u potpunoj tišini", "Isključivo sapunicom", "Specijalnim sprejem za detekciju propuštanja plina"], correct: [2, 3] },
+        { q: "Zašto je najstrože ZABRANJENO da kisik pod tlakom dođe u dodir s uljem ili mašću?", options: ["Jer ulje prlja bocu za kisik", "Organska ulja i masti s kisikom uzrokuju samozapaljenje", "Može doći do silovite eksplozije bez potrebe za iskrom", "Jer ulje smanjuje čistoću kisika s 99% na 90%"], correct: [1, 2] },
+        { q: "Koja je uloga povratnog ventila (jednosmjernog ventila) u plameniku za plinsko zavarivanje?", options: ["Regulacija brzine izgaranja", "Sprječavanje strujanja jednog plina u crijevo drugog plina", "Zaštita u slučaju začepljenja sapnice", "Povećanje tlaka u boci"], correct: [1, 2] },
+        { q: "Koja je uloga osigurača protiv povratnog udara plamena (Flashback Arrestor)?", options: ["Hlađenje crijeva hladnom vodom", "Zaustavljanje plamenog vala pomoću poroznog elementa", "Prekid opskrbe plinom pomoću termičkog ventila", "Paljenje plamena pritiskom na gumb"], correct: [1, 2] },
+        { q: "Što je to Duplex nehrđajući čelik i kakvu mikrostrukturu ima?", options: ["Čelik obložen s dva sloja cinka", "Čelik s dvofaznom mikrostrukturom", "Sadrži približno ~50% ferita", "Sadrži približno ~50% austenita"], correct: [1, 2, 3] },
+        { q: "Koji je ključni zaštitni plin i dodatak pri TIG zavarivanju Duplex čelika radi održavanja austenitne faze u zavaru?", options: ["Čisti CO2", "Argon s dodatkom 1% do 3% Dušika (N2)", "Argon + 20% Kisika", "Čisti Propan-butan"], correct: [1] },
+        { q: "Što se događa ako se pri zavarivanju Duplex čelika primijeni premali unos topline (prebrzo hlađenje)?", options: ["Struktura se pretvara u čisti austenit", "Struktura zavara ostaje pretežno feritna", "Izrazito se smanjuje žilavost i otpornost na koroziju", "Dolazi do trenutnog taljenja cijelog komada"], correct: [1, 2] },
+        { q: "Što se događa ako se pri zavarivanju Duplex čelika primijeni preveliki unos topline (presporo hlađenje)?", options: ["Može doći do izlučivanja krtih intermetalnih faza", "Stvara se štetna sigma-faza (σ)", "Dolazi do gubitka žilavosti i korozijske otpornosti", "Zavar postaje iznimno savitljiv i jak"], correct: [0, 1, 2] },
+        { q: "Zašto se nehrđajući čelici nakon zavarivanja i brušenja moraju moriti (Pickling) i pasivizirati?", options: ["Radi uklanjanja oksidnog sloja (boja popuštanja)", "Radi obnavljanja zaštitnog sloja kroma (Cr2O3)", "Radi davanja crne boje zavaru", "Radi povećanja mase komada"], correct: [0, 1] },
+        { q: "Kojom se kiselinom najčešće izvodi luženje/morjenje nehrđajućih čelika u praksi?", options: ["Običnom octenom kiselinom", "Mješavinom dušične (HNO3) i fluorvodorične (HF) kiseline", "Primjenom kiseline u obliku paste ili kupke", "Sumpornom kiselinom visoke koncentracije"], correct: [1, 2] },
+        { q: "Koji se nekovinski uključci u čeliku smatraju najopasnijima za inicijaciju pukotina?", options: ["Zaobljeni uključci silikata na površini", "Mjehurići čistog helija", "Oštri, oštrobridni uključci sulfida (FeS, MnS)", "Oštri uključci oksida smješteni duž granica zrna"], correct: [2, 3] },
+        { q: "Koja je svrha žarenja radi otklanjanja naprezanja (Stress Relief Annealing) čeličnih konstrukcija?", options: ["Usitnjavanje zrna austenita na 1000 °C", "Smanjenje zaostalih vlačnih naprezanja od zavarivanja", "Grijanje na temperaturu od ~550 °C do 650 °C uz sporo hlađenje", "Zakaljivanje površine radi postizanja 60 HRC"], correct: [1, 2] },
+        { q: "Koja je razlika između jednoslojnog i višeslojnog zavarivanja debelih limova u pogledu žilavosti?", options: ["Jednoslojno zavarivanje daje tri puta veću žilavost", "Višeslojno zavarivanje poboljšava žilavost", "Svaki sljedeći prolaz toplinski obrađuje (normalizira) prethodni", "Nema nikakve razlike u žilavosti"], correct: [1, 2] },
+        { q: "Što je to 'temperaturni prolaz' ili rekaljenje metala zavara kod višeslojnog rada?", options: ["Grijanje zavara sušilom prije bojanja", "Ponovno zagrijavanje prethodnog sloja u područje fazne transformacije", "Učinak koji usitnjava strukturu prethodnog prolaza", "Gubljenje topline u okolni zrak"], correct: [1, 2] },
+        { q: "Što je to 'MIG Brazing' (MIG lemljenje) i po čemu se razlikuje od klasičnog MIG zavarivanja?", options: ["Elektrolučno spajanje gdje se tali samo dodatni materijal", "Dodatni materijal je lem na bazi bakra", "Osnovni materijal se NE TALI", "MIG zavarivanje pri kojem se spajaju plastika i bakar"], correct: [0, 1, 2] },
+        { q: "Što je to 'Narrow Gap Welding' (Zavarivanje u uskom žlijebu)?", options: ["Tehnika zavarivanja debelih limova", "Žlijeb ima izrazito mali kut otvora (gotovo paralelne stranice)", "Služi za uštedu materijala i vremena zavarivanja", "Zavarivanje tankih cijevi promjera 5 mm"], correct: [0, 1, 2] },
+        { q: "Koje su glavne prednosti zavarivanja u uskom žlijebu (Narrow Gap)?", options: ["Drastično smanjenje utroška dodatnog materijala i vremena", "Smanjenje unosa topline i deformacija", "Jeftinija oprema bez vođenja žice", "Mogućnost rada bez zaštitnog plina i mase"], correct: [0, 1] },
+        { q: "Koja je uloga vode u sustavu hlađenja pištolja za MIG/MAG ili TIG zavarivanja?", options: ["Odvođenje topline s vođice, strujnog kabela i sapnice", "Primjenjuje se pri radu sa strujama većim od ~200 A", "Sprječavanje pregaranja gorionika", "Hlađenje zaštitnog plina prije izlaska"], correct: [0, 1, 2] },
+        { q: "Koja se tekućina koristi u rashladnim uređajima aparata za zavarivanje radi sprječavanja smrzavanja i korozije?", options: ["Obična voda iz slavine sa solju", "Mješavina destilirane vode i rashladnog sredstva", "Sredstvo na bazi glikola/alkohola niske vodljivosti", "Motorno ulje 10W-40"], correct: [1, 2] },
+        { q: "Što je to 'Poroznost u obliku crvotčina' (Wormholes / Piping porosity) u zavaru?", options: ["Izdužene cijevaste šupljine", "Šupljine nastale prolaskom plina kroz talinu koja se brzo skrućuje", "Rupa koju su probušili crvi u drvu", "Pukotina u obliku križa"], correct: [0, 1] },
+        { q: "Koji je najčešći uzrok pojave cijevaste poroznosti (crvotčina) kod TIG ili MAG zavarivanja?", options: ["Jako zagađenje površine uljem ili rđom", "Gubitak zaštitnog plina zbog propuha", "Vlažan podložak ili površina", "Premala struja zavarivanja za 10A"], correct: [0, 1, 2] },
+        { q: "Što je to 'Aktivacijski TIG' ili A-TIG (Activated TIG) postupak?", options: ["TIG zavarivanje uz nanošenje tankog sloja aktivacijskog fluksa", "Postupak koji drastično povećava dubinu penetracije", "TIG zavarivanje s automatskim paljenjem na gumb", "Zavarivanje s dvije elektrode u isto vrijeme"], correct: [0, 1] },
+        { q: "Kako A-TIG postupak povećava dubinu penetracije (često i do 3 puta za istu struju)?", options: ["Okretanjem smjera Marangonijeve konvekcije prema središtu", "Sužavanjem električnog luka", "Povećanjem struje sa 100A na 1000A", "Pregrijavanjem pištolja do crvenog sjaja"], correct: [0, 1] },
+        { q: "Što je to Marangonijeva konvekcija u kupki rastaljenog metala?", options: ["Strujanje tekućeg metala u kupki", "Strujanje uzrokovano gradijentom površinske napetosti", "Ovisi o temperaturi i sastavu (npr. S, O)", "Stvaranje mjehurića pare u ulju"], correct: [0, 1, 2] },
+        { q: "Koji elementi u tragovima (aktivni elementi) mijenjaju temperaturni koeficijent površinske napetosti iz negativnog u pozitivni i produbljuju penetraciju?", options: ["Sumpor (S) i Kisik (O)", "Selen (Se) i Telur (Te)", "Aluminij i Kalcij", "Bakar i Srebro"], correct: [0, 1] },
+        { q: "Što je to 'WPS' prema normi EN ISO 15609?", options: ["Ugovor o kupnji aparata za zavarivanje", "Standardizirani format dokumenta", "Specifikacija postupka zavarivanja", "Norma za dimenzije zaštitnih naočala"], correct: [1, 2] },
+        { q: "Koje od navedenih podataka OBAVEZNO mora sadržavati važeći WPS dokument?", options: ["Oznaku postupka, osnovni materijal, debljinu i tip spoja", "Dodatni materijal, struju, napon i brzinu zavarivanja", "Zaštitni plin i temperaturu predgrijavanja", "Cijenu radnog sata i marku vozila direktora"], correct: [0, 1, 2] },
+        { q: "Što je to pWPS (preliminary Welding Procedure Specification)?", options: ["Preliminarna specifikacija postupka zavarivanja", "Dokument koji se priprema radi izrade probnih uzoraka za WPQR", "WPS koji se koristi samo u školskim ustanovama", "Nevažeći dokument koji se baca u otpad"], correct: [0, 1] },
+        { q: "Koja je uloga 'Ispitnog tijela / Ovlaštene organizacije' pri kvalifikaciji postupka zavarivanja (WPQR)?", options: ["Nadzor nad zavarivanjem probnih uzoraka", "Nadzor nad NDT i DT ispitivanjima", "Potpisivanje i izdavanje WPQR izvještaja", "Samo prodaja materijala radionici"], correct: [0, 1, 2] },
+        { q: "Koliko dugo vrijedi kvalifikacija postupka zavarivanja (WPQR) izdana prema EN ISO 15614-1?", options: ["Točno 1 godinu", "Vremenski je NEOGRANIČENA", "Vrijedi sve dok tvrtka radi u okviru odobrenog područja valjanosti", "Točno 6 mjeseci"], correct: [1, 2] },
+        { q: "Koliko dugo vrijedi atest (potvrda o kvalifikaciji) zavarivača prema EN ISO 9606-1, uz redovito potvrđivanje svakih 6 mjeseci?", options: ["Beskonačno bez ikakvih provjera", "2 godine ili 3 godine (ovisno o odabranoj opremi i načinu produživanja)", "Točno 1 mjesec", "Točno 10 godina"], correct: [1] },
+        { q: "Tko mora potvrditi (potpisati) dnevnik zavarivanja/atest zavarivača svakih 6 mjeseci kako bi atest ostao valjan?", options: ["Sam zavarivač osobno", "Koordinator zavarivanja (IWE/IWT)", "Ovlaštena osoba poslodavca koja potvrdđuje rad zavarivača", "Bilo koji kolega u pogonu"], correct: [1, 2] },
+        { q: "Što se događa s atestom zavarivača ako zavarivač NE zavaruje u sklopu svog područja odobrenja duže od 6 mjeseci?", options: ["Atest prestaje vrijediti (postaje nevažeći)", "Mora se ponovno polagati ispit", "Atest se automatski produžuje za još 5 godina", "Atest se prenosi na drugog radnika"], correct: [0, 1] },
+        { q: "Koji se kut utora (otvora žlijeba) najčešće priprema za ručno REL zavarivanje sučeljenih V-spojeva na čeličnim limovima debljine 6-15 mm?", options: ["10° do 15°", "60° do 70°", "Točno 90°", "120°"], correct: [1] },
+        { q: "Koliko obično iznosi tupi korijenski brid (c) i zazor u korijenu (b) kod standardne pripreme V-žlijeba za REL?", options: ["Brid c = 1 - 2 mm", "Zazor b = 1 - 3 mm", "Brid c = 10 mm, zazor b = 0 mm", "Brid c = 0 mm, zazor b = 15 mm"], correct: [0, 1] },
+        { q: "Što je to Podložna pločica (Backing strip) i zašto se koristi?", options: ["Čelična, bakrena ili keramička letvica", "Postavlja se sa stražnje strane korijena", "Služi za sigurnu izradu korijenskog zavara bez prokapljivanja", "Pločica za niveliranje aparata na podu"], correct: [0, 1, 2] },
+        { q: "Što se događa s čeličnom podložnom pločicom koja ostaje trajno ugrađena u zavareni spoj u pogledu zamorne čvrstoće?", options: ["Znatno smanjuje dinamičku (zamornu) čvrstoću spoja", "Uzrok smanjenja je stvoreni zarez na korijenu zavara", "Povećava zamornu čvrstoću za 200%", "Ne utječe na zamornu čvrstoću"], correct: [0, 1] },
+        { q: "Zašto se pri zavarivanju odgovornih konstrukcija primjenjuju Keramičke podložne pločice (Ceramic Backing)?", options: ["Omogućuju izradu vrhunskog korijenskog zavara u jednom prolazu", "Nakon zavarivanja se lako uklone i odvoje", "Keramika se rastali i pomiješa s čelikom radi čvrstoće", "Keramičke pločice provode struju i griju spoj"], correct: [0, 1] },
+        { q: "Što je to 'Obrnuti prolaz' ili korijenski žljebljenje (Back Gouging)?", options: ["Uklanjanje metala s poleđine korijena (brusilicom ili ugljenom elektrodom)", "Postupak koji se izvodi prije zavarivanja kontrazavara", "Okretanje pištolja za 180 stupnjeva", "Zavarivanje stražnjom stranom elektrode"], correct: [0, 1] },
+        { q: "Zašto se provodi žljebljenje poleđine korijena prije zavarivanja druge strane kod obostrano zavarenih spojeva?", options: ["Radi uklanjanja eventualnih nepravilnosti, pora i troske iz prvog prolaza", "Radi uklanjanja neprovara iz prvog prolaza", "Radi osiguranja potpunog provara cjelokupnog spoja", "Radi smanjenja debljine lima za 50%"], correct: [0, 1, 2] },
+        { q: "Koji se postupak najčešće koristi za brzo i efikasno žljebljenje poleđine korijena na debljim čeličnim konstrukcijama?", options: ["Plazma rezanje u vodi", "Elektrolučno žljebljenje ugljenom elektrodom uz komprimirani zrak", "Air Carbon Arc Gouging", "Ručno turpijanje turpijom za metal"], correct: [1, 2] },
+        { q: "Koja je opasnost pri žljebljenju ugljenom elektrodom ako se ne primijeni pravilna tehnika i brzina zraka?", options: ["Unos ugljika (pougljičenje) na površinu žlijeba", "Mogućnost nastanka otvrdnuća i pukotina u nastavku zavarivanja", "Pregrijavanje zraka u prostoriji", "Isparavanje željeza u obliku zlatne prašine"], correct: [0, 1] },
+        { q: "Što je to Flux-Cored Arc Welding (FCAW) s vanjskom plinskom zaštitom (Gas-shielded FCAW)?", options: ["Zavarivanje praškom punjenom žicom", "Istovremeni dovod zaštitnog plina (Ar/CO2 ili čisti CO2)", "Zavarivanje čistom punom žicom bez plina", "Zavarivanje plamenom acetilena"], correct: [0, 1] },
+        { q: "Što je to Samozaštitna praškom punjena žica (Self-shielded FCAW - Innershield)?", options: ["Praškom punjena žica čiji prašak pri izgaranju stvara plinove i trosku", "Žica koja NE TREBA vanjsku bocu s plinom", "Žica koja je obložena plastikom izvana", "Žica koja ne treba električnu struju"], correct: [0, 1] },
+        { q: "Gdje se najviše koristi samozaštitna praškom punjena žica (Innershield)?", options: ["U laboratorijima za mikroskopiju", "Na terenskim radovima i montažama na otvorenom", "U uvjetima gdje vjetar otpuhuje zaštitni plin iz boce", "Za robotizirano zavarivanje automobila u hali"], correct: [1, 2] },
+        { q: "Koji je osnovni nedostatak samozaštitnih žica u usporedbi sa žicama koje koriste zaštitni plin?", options: ["Veća količina dima i prskanja", "Nešto slabija mehanička svojstva i obavezno čišćenje troske", "Izrazito visoka cijena plina", "Zahtijevaju izmjeničnu struju od 10000V"], correct: [0, 1] },
+        { q: "Koja je uloga Fluorida (npr. CaF2) u oblozi bazičnih elektroda i prašku bazičnih žica?", options: ["Vezivanje vodika u HF plin", "Rafiniranje taline od sumpora i fosfora", "Stvaranje bazične troske", "Stvaranje rutilne sjajne površine"], correct: [0, 1, 2] },
+        { q: "Zašto bazične elektrode i bazični prašci daju iznimno visoku žilavost metala zavara na niskim temperaturama?", options: ["Daju izuzetno čist metal zavara", "Sadrže minimalan udjel kisikovih nekovinskih uključenja", "Daju nizak sadržaj vodika u zavaru", "Sadrže 50% zlata u oblozi"], correct: [0, 1, 2] },
+        { q: "Koji se ugljični čelici smatraju dobro zavarljivima bez posebnih mjera predgrijavanja?", options: ["Niskougljični čelici s udjelom ugljika C < 0.22%", "Čelici s ekvivalentom ugljika CE < 0.40%", "Visokougljični čelici s C > 0.60%", "Lijevana željeza s 3% ugljika"], correct: [0, 1] },
+        { q: "Što je to Fine-grain structural steel (Sitnozrnati konstrukcijski čelik)?", options: ["Čelik mikrolegiran titanom, vanadijem ili niobijem", "Čelik s iznimno sitnim zrnom", "Odlikuje se visokom granicom razvlačenja i žilavošću", "Čelik koji je samljeven u sitni prah"], correct: [0, 1, 2] },
+        { q: "Koja je glavna opasnost pri zavarivanju sitnozrnatih čelika visokog čvrstoće s velikim unosom topline?", options: ["Ukrupnjavanje zrna u ZUT-u", "Drastičan pad granice razvlačenja i žilavosti", "Zavarivanje postaje nemoguće jer se čelik zapali", "Povećanje tvrdoće na 100 HRC"], correct: [0, 1] },
+        { q: "Zašto se pri zavarivanju sitnozrnatih čelika visoke čvrstoće mora strogo ograničiti maksimalna međuslojna temperatura i unos topline?", options: ["Radi očuvanja sitnozrnate strukture", "Radi sprječavanja opadanja mehaničkih svojstava u ZUT-u", "Da se ne bi oštetio pištolj za zavarivanje", "Zbog smanjenja potrošnje zaštitnog plina"], correct: [0, 1] },
+        { q: "Koji je osnovni problem pri zavarivanju sivog lijevanog željeza (sivog liva)?", options: ["Visok udio ugljika (2.5 - 4%) i izrazito visoka krhkost", "Sklonost zakaljivanju i stvaranju bijelog liva na liniji fuzije", "Niska točka taljenja od 100°C", "Prevelika savitljivost poput gume"], correct: [0, 1] },
+        { q: "Koje se dvije osnovne metode primjenjuju za zavarivanje/reparaturu lijevanog željeza?", options: ["Toplo zavarivanje (uz predgrijavanje na 500-700 °C)", "Hladno zavarivanje (obloženo niklenim ili Ni-Fe elektrodama)", "Plazma rezanje i ultrazvučno lijepljenje", "Eksplozijsko zavarivanje i lemljenje kositrom"], correct: [0, 1] },
+        { q: "Zašto se pri hladnom zavarivanju sivog liva koriste elektrode na bazi Nikla (Ni) ili Nikal-Željeza (Ni-Fe)?", options: ["Nikal ne otapa ugljik i ne zakaljuje se", "Daje mekan i rastezljiv metal zavara koji apsorbira naprezanja", "Nikal je najjeftiniji metal na tržištu", "Nikal omekšava čelik u peći"], correct: [0, 1] },
+        { q: "Kako se izvozi tehnika zavarivanja kratkim koracima (korak po korak) pri hladnom zavarivanju sivog liva?", options: ["Zavaruju se kratki prolazi (20-50 mm)", "Prolazi se odmah lagano čekićaju", "Ostave se da se ohlade na dodir rukom prije nastavka", "Izvodi se neprekidni zavar duljine 1 metar"], correct: [0, 1, 2] },
+        { q: "Zašto se lagano čekića (peening) svaki kratki prolaz pri hladnom zavarivanju lijevanog željeza?", options: ["Radi plastičnog rastezanja unesenog metala zavara", "Radi smanjenja vlačnih naprezanja koja bi uzrokovala pucanje", "Radi čišćenja prašine s površine", "Da bi se provjerila tvrdoća zvuka"], correct: [0, 1] },
+        { q: "Što je to Austenitni nehrđajući čelik (npr. AISI 304, AISI 316)?", options: ["Visokolegirani čelik s min. 18% Kroma i 8% Nikla", "Nemagnetičan čelik visoke korozijske otpornosti i žilavosti", "Čelik s 5% ugljika i bez kroma", "Legura bakra i cinka"], correct: [0, 1] },
+        { q: "Koji je razlog velike rastezljivosti i unosa deformacija pri zavarivanju austenitnih nehrđajućih čelika u usporedbi s nelegiranim čelikom?", options: ["Austenit ima oko 50% veći koeficijent toplinskog rastezanja", "Austenit ima oko 30% manju toplinsku vodljivost", "Austenit je duplo teži po masi", "Austenit se tali na 3000°C"], correct: [0, 1] },
+        { q: "Što je to Schaefflerov dijagram i za što se koristi u zavarivanju?", options: ["Dijagram za predviđanje mikrostrukture metala zavara", "Povezuje ekvivalent kroma (Creq) i ekvivalent nikla (Nieq)", "Primjenjuje se kod zavarivanja raznorodnih čelika", "Dijagram za izračun utroška plina"], correct: [0, 1, 2] },
+        { q: "Koje se mikrostrukture nalaze na osima Schaefflerovog dijagrama?", options: ["Ekvivalent kroma (Creq) na apscisi (X)", "Ekvivalent nikla (Nieq) na ordinati (Y)", "Struja na X i Napon na Y", "Debljina na X i Temperatura na Y"], correct: [0, 1] },
+        { q: "Kako glasi pojednostavljena formula za Ekvivalent Kroma (Creq) u Schaefflerovom dijagramu?", options: ["Creq = %Ni + 30*%C", "Creq = %Cr + %Mo + 1.5*%Si + 0.5*%Nb", "Creq = %Fe + %S", "Creq = %Al + %Cu"], correct: [1] },
+        { q: "Kako glasi pojednostavljena formula za Ekvivalent Nikla (Nieq) u Schaefflerovom dijagramu?", options: ["Nieq = %Cr + %Mo", "Nieq = %Fe / %C", "Nieq = %Ni + 30*%C + 0.5*%Mn + 30*%N", "Nieq = %Si + %P"], correct: [2] },
+        { q: "Koje su osnovne regije strukturnih faza prikazane na Schaefflerovom dijagramu?", options: ["Austenit (A) i Ferit (F)", "Martenzit (M)", "Mješovite zone (npr. A+F, A+M, M+F)", "Zlato, Srebro i Bakar"], correct: [0, 1, 2] },
+        { q: "Zašto se pri zavarivanju austenitnih čelika preferira primarni feritni sastav metala zavara s 3% do 10% delta-ferita (δ-ferit)?", options: ["Prisutnost male količine delta-ferita sprječava vruće pukotine", "Delta-ferit sprječava nastanak pukotina u austenitnom zavaru", "Da bi zavar postao izrazito magnetičan", "Da bi se smanjila cijena dodatne žice"], correct: [0, 1] },
+        { q: "Što je to DeLongov dijagram i po čemu se razlikuje od Schaefflerovog dijagrama?", options: ["Preciznije uzima u obzir utjecaj Dušika (N) na stabilizaciju austenita", "Točnije određuje postotak delta-ferita u zavaru", "Koristi se samo za aluminijske legure", "Dijagram za izračun snage lasera"], correct: [0, 1] },
+        { q: "Što je to WRC-1992 dijagram?", options: ["Norma za certifikaciju zavarivačkih maski", "Moderni dijagram Welding Research Councila", "Dijagram za određivanje Broja Ferita (FN) u nehrđajućim čelicima", "Program za robotsko rezanje"], correct: [1, 2] },
+        { q: "Što je to Broj Ferita (FN - Ferrite Number) i kako se mjeri na terenu?", options: ["Standardizirana mjera za sadržaj delta-ferita", "Mjeri se magnetskim instrumentima (npr. Feritmetrom)", "Postotak ugljika u peći za taljenje", "Broj pora po kvadratnom centimetru"], correct: [0, 1] },
+        { q: "Zašto je aluminij i njegove legure iznimno sklon stvaranju pora od vodika pri zavarivanju?", options: ["Nagao pad topljivosti vodika pri prijelazu iz tekućeg u kruto stanje", "Tekući Al otapa do 20 puta više H2 nego kruti Al", "Aluminij izgori u dodiru s argon plinom", "Aluminij je feromagnetičan materijal"], correct: [0, 1] },
+        { q: "Koja je točka taljenja čistog aluminija, a koja njegovog oksidnog sloja (Al2O3)?", options: ["Čisti Al se tali na ~660 °C", "Oksid Al2O3 se tali na ~2050 °C", "Čisti Al se tali na 2000 °C", "Oba se tale na točno 1000 °C"], correct: [0, 1] },
+        { q: "Zašto se površinski oksidni sloj (Al2O3) mora ukloniti mehanički ili katodnim čišćenjem neposredno prije zavarivanja?", options: ["Zbog visoke točke taljenja oksida (2050°C)", "Oksid sprječava stapanje metala", "Uzrokuje teške uključke i neprovare u zavaru", "Radi estetskog izgleda i sjaja površine"], correct: [0, 1, 2] },
+        { q: "Koje se četke smiju koristiti za mehaničko čišćenje aluminija prije zavarivanja?", options: ["Obične čelične četke od nelegiranog željeza", "Četke s vlasima od nehrđajućeg čelika (Inox)", "Četke koje se koriste SAMO za aluminij", "Mesingane četke za cipele"], correct: [1, 2] },
+        { q: "Zašto se obična čelična četka NE SMIJE koristiti na aluminiju?", options: ["Ostavlja čestice željeza na površini aluminija", "Čestice željeza uzrokuju tešku kontaktnu (galvansku) koroziju", "Čelična četka drastično tupi aluminij", "Četka će eksplodirati u dodiru s aluminijem"], correct: [0, 1] },
+        { q: "Koje su osnovne skupine aluminijskih legura koje se NE MOGU toplinski obraditi (očvršćavaju se hladnom deformacijom)?", options: ["Legure serije 1xxx (čisti Al)", "Legure serije 3xxx (Al-Mn) i 5xxx (Al-Mg)", "Legure serije 2xxx (Al-Cu) i 7xxx (Al-Zn)", "Legure serije 6xxx (Al-Mg-Si)"], correct: [0, 1] },
+        { q: "Koje su osnovne skupine aluminijskih legura koje se MOGU toplinski obraditi (taložno očvršćavanje / dozrijevanje)?", options: ["Legure serije 1xxx i 3xxx", "Legure serije 2xxx (Al-Cu)", "Legure serije 6xxx (Al-Mg-Si) i 7xxx (Al-Zn)", "Čisti lijevani bakar"], correct: [1, 2] },
+        { q: "Što se događa u ZUT-u toplinski obrađenih aluminijskih legura (npr. serije 6xxx) tijekom zavarivanja?", options: ["Dolazi do omekšanja ZUT-a (gubitak čvrstoće za 30-50%)", "Omekšanje nastaje uslijed prezrijevanja i otapanja taloga", "Čvrstoća se povećava tri puta", "Aluminij se pretvara u čelik"], correct: [0, 1] },
+        { q: "Koji je najčešći dodatni materijal (žica) za MIG/TIG zavarivanje aluminijskih legura serije 6xxx (Al-Mg-Si)?", options: ["Čisti aluminij Al100", "AlSi5 (ER4043)", "AlMg5 (ER5356)", "Mjedena žica"], correct: [1, 2] },
+        { q: "Zašto se legura AlMg5 (ER5356) preferira kada se zavareni spoj od aluminija mora naknadno eloksirati (anodizirati)?", options: ["Daje ujednačenu boju spoja s osnovnim materijalom", "AlSi5 nakon eloksiranja poprimi tamno sivu/crnu boju", "Dvostruko je jeftinija od ostalih žica", "Ne zahtijeva primjenu zaštitnog plina"], correct: [0, 1] },
+        { q: "Koja je glavna poteškoća pri zavarivanju Bakra (Cu) zbog njegovih fizikalnih svojstava?", options: ["Izuzetno visoka toplinska vodljivost (oko 6 puta veća od čelika)", "Zahtijeva masivno predgrijavanje i visoke unose topline", "Niska točka taljenja od samo 50°C", "Nemogućnost vođenja električne struje"], correct: [0, 1] },
+        { q: "Do kojih se temperatura moraju predgrijati deblji bakreni komadi (> 5 mm) prije TIG ili MIG zavarivanja?", options: ["300 °C do 600 °C", "Samo 50 °C", "Bakar se nikada ne smije predgrijavati", "1200 °C"], correct: [0] },
+        { q: "Koji se zaštitni plin preferira za TIG/MIG zavarivanje bakra radi povećanja unosa topline bez pretjeranog predgrijavanja?", options: ["Čisti CO2", "Mješavine Argona i Helija", "Čisti Helij", "Argon + 20% CO2"], correct: [1, 2] },
+        { q: "Koji su glavni problemi pri zavarivanju Titana (Ti) i njegovih legura?", options: ["Izrazit afinitet prema kisiku, dušiku i vodiku na temp. > 300°C", "Apsorpcija plinova uzrokuje tešku krhkost metala zavara", "Mala točka taljenja od 200°C", "Prevelika masa titana"], correct: [0, 1] },
+        { q: "Kako se osigurava zaštita pri TIG zavarivanju Titana?", options: ["Potpuna plinska zaštita lica i korijena (purging)", "Zaštita ohlađenog dijela zavara pomoću produžnih papučica (Trailing Shield)", "Rad u komori s argonom", "Zavarivanje u vodenoj kupki"], correct: [0, 1, 2] },
+        { q: "Koja je dopuštena boja površine zavara od Titana koja ukazuje na dobru plinsku zaštitu i prihvatljivu kvalitetu?", options: ["Tamno plava ili siva s pepelom", "Srebrnkasta boja", "Svijetlo žuta (slamnata) boja", "Potpuno crna mat boja"], correct: [1, 2] },
+        { q: "Što znači tamno plava, siva ili bijela praškasta boja na zavaru od Titana?", options: ["Teška kontaminacija kisikom ili dušikom", "Zavar je krt i NEPRIHVATLJIV", "Zavar se mora u potpunosti izbrusiti i ponoviti", "Kvaliteta zavara je savršena"], correct: [0, 1, 2] },
+        { q: "Što je to Zavarivanje u komori s kontroliranom atmosferom (Glove box welding)?", options: ["Zavarivanje u ormaru za odjeću", "Zavarivanje unutar nepropusne komore", "Iz komore je isisan zrak i napunjena je čistim argonom (99.999%)", "Postupak koji se najčešće koristi za titan i reaktivne metale"], correct: [1, 2, 3] },
+        { q: "Što je to 'MIG Spray Arc' (Štrcajući luk)?", options: ["Prijenos metala u sitnim kapljicama bez kratkih spojeva", "Javlja se pri visokim strujama i naponima", "Karakterističan za plinove bogate argonom", "Prijenos s velikim prskanjem u čistom CO2"], correct: [0, 1, 2] },
+        { q: "Koji su minimalni naponski i strujni uvjeti za prijelaz u Štrcajući luk (Spray arc) kod MAG zavarivanja čeličnom žicom Ø1.2 mm u Ar/CO2 mješavini?", options: ["Struja I = 50 A, Napon U = 14 V", "Struja I > 220-240 A", "Napon U > 26-28 V", "Struja I = 500 A, Napon U = 60 V"], correct: [1, 2] },
+        { q: "Zašto se Štrcajući luk (Spray Arc) NE MOŽE primjenjivati za zavarivanje u prisilnim položajima (npr. zidno ili nadglavno)?", options: ["Jer se aparat automatski gasi", "Zbog velike količine tekućeg metala", "Zbog niske površinske napetosti kupka bi iscurila uslijed gravitacije", "Jer zaštitni plin pada na pod"], correct: [1, 2] },
+        { q: "Koji se prijenos metala koristi za zavarivanje u prisilnim položajima pri MIG/MAG postupku?", options: ["Isključivo štrcajući luk", "Prijenos u kratkim spojevima (Short arc)", "Impulsni luk (Pulsed arc)", "Krupnokapljičasti prijelaz u čistom CO2 pri 350A"], correct: [1, 2] },
+        { q: "Što je to 'Prijelazni luk' (Globular Arc / Globularni prijenos)?", options: ["Nestabilan prijenos u krupnim kapljicama uz jako prskanje", "Javlja se u području između kratkog spoja i štrcajućeg luka", "Najbolji prijenos metala bez ijedne prskotine", "Postupak lemljenja plastike"], correct: [0, 1] },
+        { q: "Zašto se izbjegava rad u području Prijelaznog luka (Globular Arc)?", options: ["Zbog velikog i nekontroliranog prskanja metala", "Zbog lošeg izgleda zavara", "Zbog opasnosti od nastanka neprovara", "Jer gori crijevo za plin"], correct: [0, 1, 2] },
+        { q: "Što je to 'Fronius CMT' ili 'Lincoln STT' tehnologija u suvremenim izvorima struje?", options: ["Nove vrste plinskih boca", "Invertorski sustavi s brzom kontrolom valnog oblika struje", "Sustavi s kontrolom mehanike žice za hladni prijenos bez prskanja", "Ručne maske za zavarivanje s kamerom"], correct: [1, 2] },
+        { q: "Što je to 'Polukordonski zavar' ili 'Kutni zavar' (Fillet weld)?", options: ["Sučeljeni zavar na I-spoju", "Zavar trokutastog poprečnog presjeka", "Spaja dvije površine pod kutem (najčešće 90°)", "Zavar u izbušenoj rupi"], correct: [1, 2] },
+        { q: "Što označava mjera 'a' (debljina grla) kutnog zavara?", options: ["Širinu lica zavara na površini", "Visinu najvećeg jednakokračnog trokuta upisanog u poprečni presjek", "Duljinu zavarenog spoja u metrima", "Debljinu osnovnog lima"], correct: [1] },
+        { q: "Kako glasi približan odnos između debljine grla kutnog zavara 'a' i debljine najtanjeg lima 't' u konstrukcijama?", options: ["a = 5 * t", "a ≈ 0.7 * t", "Obavezni uvjet je a ≥ 3 mm", "a = točno 20 mm neovisno o limu"], correct: [1, 2] },
+        { q: "Što označava mjera 'z' (duljina krakova) kutnog zavara?", options: ["Visinu nadvišenja zavara", "Duljinu stranice jednakokračnog trokuta upisanog u presjek", "Izračunava se po formuli z = a * √2 ≈ 1.41 * a", "Debljinu korijena"], correct: [1, 2] },
+        { q: "Što je to 'Ravno grlo' kutnog zavara, a što 'Konkavno' i 'Konveksno'?", options: ["Ravno ima ravno lice, konkavno udubljeno, a konveksno izbočeno", "Konkavno grlo je povoljno za dinamička opterećenja", "Ravno je za plastiku, konkavno za čelik, konveksno za bakar", "To su oznake za vrstu plina u boci"], correct: [0, 1] },
+        { q: "Zašto se izrazito izbočeni (konveksni) kutni zavari izbjegavaju na konstrukcijama izloženim zamoru (dinamičkom opterećenju)?", options: ["Izbočeni zavar je preslab po vlačnoj čvrstoći", "Oštri prijelaz s metala zavara na osnovni metal stvara jaku koncentraciju naprezanja", "Koncentracija naprezanja inicira pukotine zamora", "Povećava se potrošnja boje pri bojanju"], correct: [1, 2] },
+        { q: "Što je to 'Izgaranje legirajućih elemenata' u luku i kako se nadoknađuje?", options: ["Gubitak elemenata (Mn, Si, Cr) uslijed oksidacije u luku", "Nadoknađuje se legiranim žicama", "Nadoknađuje se preko obloge elektrode ili praška", "Isparavanje željeza u zrak"], correct: [0, 1, 2] },
+        { q: "Što je to 'Dezoksidacija' metala zavara?", options: ["Kemijsko vezivanje otopljenog kisika iz taline", "Izvodi se pomoću deoksidacijskih elemenata (Al, Si, Mn)", "Stvara stabilne okside koji prelaze u trosku", "Uklanjanje rđe kemijskim otapalom prije rada"], correct: [0, 1, 2] },
+        { q: "Što je to 'Otplinjavanje' metala zavara?", options: ["Ispuštanje plina iz boce na kraju smjene", "Izdvajanje zarobljenih plinova (H2, N2, CO) iz tekuće taline", "Proces koji se odvija prije skrućivanja radi sprječavanja pora", "Provjetravanje radionice ventilatorom"], correct: [1, 2] },
+        { q: "Što je to 'Rafinacija' tekućeg metala u zavarivanju?", options: ["Proces prerade nafte u gorivo", "Čišćenje tekućeg metala od štetnih primjesa (Sumpora S i Fosfora P)", "Izvodi se pomoću reakcije s bazičnom troskom (CaO, CaF2)", "Glađenje površine zavara turpijom"], correct: [1, 2] },
+        { q: "Koji štetni element u čeliku uzrokuje 'Crveni lom' (pucanje na visokim temperaturama tijekom kovanja/zavarivanja)?", options: ["Fosfor (P)", "Sumpor (S)", "Nastaje uslijed stvaranja nisko-taljivog eutektika Fe-FeS na 988 °C", "Silicij (Si)"], correct: [1, 2] },
+        { q: "Koji štetni element u čeliku uzrokuje 'Hladni lom' (krhkost na sobnoj i sniženim temperaturama)?", options: ["Sumpor (S)", "Fosfor (P)", "Aluminij (Al)", "Mangan (Mn)"], correct: [1] },
+        { q: "Koja je uloga Mangana (Mn) u sprječavanju štetnog utjecaja Sumpora u čeliku?", options: ["Mangan veže sumpor u visoko-taljivi sulfid MnS (talište 1610 °C)", "Izlučuje se u obliku kuglastih uključka i sprječava crveni lom", "Mangan neutralizira kisik i pretvara ga u vodu", "Mangan smanjuje gustoću čelika"], correct: [0, 1] },
+        { q: "Što je to 'Zavarivački obrtaj' ili redoslijed zavarivanja (Welding sequence)?", options: ["Rotacija zavarivača na radnom mjestu svakih sat vremena", "Planirani redoslijed polaganja pojedinih prolaza i šavova", "Služi radi minimaliziranja deformacija i zaostalih naprezanja", "Okretanje boce za plin tijekom rada"], correct: [1, 2] },
+        { q: "Što je to 'Zavarivanje korak natrag' (Backstep welding)?", options: ["Hodanje unazad tijekom zavarivanja", "Ukupna duljina šava dijeli se na kraće dionice", "Dionice se zavaruju u smjeru suprotnom od napredovanja cjelokupnog šava", "Tehnika koja se koristi samo za plastiku"], correct: [1, 2] },
+        { q: "Zašto tehnika zavarivanja 'korak natrag' smanjuje uzdužne deformacije i vitoperenje limova?", options: ["Jer se koristi trostruko manja struja", "Lokalno smanjuje akumulaciju topline", "Ravnomjernije raspodjeljuje skupljanje po duljini spoja", "Zbog primjene hladne vode na kraj svake dionice"], correct: [1, 2] },
+        { q: "Što je to 'Simetrično zavarivanje' u odnosu na neutralnu os konstrukcije?", options: ["Zavarivanje točno dvije elektrode u isto vrijeme", "Zavarivanje šavova s obje strane neutralne osi nosača/konstrukcije", "Služi radi međusobnog poništavanja deformacija", "Crtanje simetričnih linija na limu kredom"], correct: [1, 2] },
+        { q: "Što je to 'Simetrični X-žlijeb' u usporedbi s 'V-žlijebom' pri zavarivanju debelih ploča sa stajališta deformacija?", options: ["V-žlijeb je tri puta jeftiniji za izradu", "X-žlijeb zahtijeva gotovo duplo manje metala zavara", "Omogućuje simetrično zavarivanje s obje strane čime se izbjegava kutna deformacija", "X-žlijeb se koristi samo za drvo"], correct: [1, 2] },
+        { q: "Kako se provodi mehaničko ravnanje (ispravljanje) deformiranih zavarenih konstrukcija?", options: ["Slaganjem u zamrzivač na -20°C", "Pomoću preša, valjaka ili dizalica", "Ručnim čekićanjem pod tlakom", "Potapanjem u kiselinu"], correct: [1, 2] },
+        { q: "Što je to 'Plameno ravnanje' (Flame straightening)?", options: ["Zapaljivanje konstrukcije radi izgaranja viška lima", "Lokalno zagrijavanje plinskim plamenikom u obliku klina/točke do plastičnog stanja (600-700°C)", "Ravnanje uslijed skupljanja materijala pri hlađenju", "Grijanje cijelog nosača u peći do taljenja"], correct: [1, 2] },
+        { q: "Koja je osnovna fizikalna podloga plamenog ravnanja?", options: ["Djelovanje tlaka plina iz sapnice na lim", "Spriječeno toplinsko širenje zagrijanog lokalnog područja uzrokuje plastičnu tlačnu deformaciju", "Pri hlađenju to područje se skraćuje i ravna komad", "Djelovanje magnetskog polja plamena"], correct: [1, 2] },
+        { q: "Do koje se maksimalne temperature smiju zagrijavati nelegirani i niskolegirani konstrukcijski čelici pri plamenom ravnanju?", options: ["Iznad 1200 °C do žutog usijanja", "Oko 600 °C do 700 °C (tamno crvena boja žara)", "Temperatura pri kojoj se ne ulazi u područje fazne transformacije", "Maksimalno do 100 °C"], correct: [1, 2] },
+        { q: "Zašto se nehrđajući austenitni čelici pri plamenom ravnanju moraju ohladiti što brže (npr. vodom ili mokrom krpom)?", options: ["Da se ne bi zapalila podna obloga", "Radi sprječavanja zadržavanja u području sensitizacije (450-850°C)", "Radi očuvanja otpornosti na interkristalnu koroziju", "Da bi čelik postao magnetičan"], correct: [1, 2] },
+        { q: "Što je to 'Magnetometrija' ili ispitivanje magnetskim rasipnim tokom pri NDT-u?", options: ["Mjerenje privlačne sile magneta na vagi", "Otkrivanje diskontinuiteta mjerenjem gustoće magnetskog toka", "Primjena Hallovih sonda ili senzora u mjerenju", "Ispitivanje prisutnosti zlata u čeliku"], correct: [1, 2] },
+        { q: "Što je to 'Eddy Current Testing' (ET - Ispitivanje vrtložnim strujama)?", options: ["Ispitivanje protoka vode u rijekama", "Elektromagnetska NDT metoda", "Koristi indukciju vrtložnih struja u vodljivim materijalima za otkrivanje površinskih grešaka", "Metoda za čišćenje rđe strujom"], correct: [1, 2] },
+        { q: "Koje su osnovne prednosti ispitivanja vrtložnim strujama (ET)?", options: ["Može ispitivati drvo i plastiku bez ograničenja", "Brza metoda bez kontakta i bez primjene potrošnih kemikalija", "Pogodna za automatsko ispitivanje cijevi i žica te mjerenje debljine slojeva", "Nije potrebna nikakva struja za uređaj"], correct: [1, 2] },
+        { q: "Što je to 'Acoustic Emission Testing' (AT - Ispitivanje akustičnom emisijom)?", options: ["Slušanje glasa zavarivača kroz mikrofon", "NDT metoda koja registrira elastične valove (zvuk) iz materijala", "Registrira zvuk koji emitira materijal pri širenju pukotine pod opterećenjem", "Ispitivanje kvalitete zvučnika"], correct: [1, 2] },
+        { q: "Što je to 'Poremećaj geometrije - Nadvišenje lica zavara' (Excess weld metal) i zašto je ograničeno normama?", options: ["Prevelika količina taline na licu zavara", "Veliko nadvišenje stvara oštar prijelaz i koncentraciju naprezanja", "Nedovoljna količina metala u žlijebu", "Sloj troske koji se stvrdnuo na površini"], correct: [0, 1] },
+        { q: "Što je to 'Uključak troske' (Slag inclusion) i u kojim se postupcima najčešće javlja?", options: ["Nemetalni čvrsti ostaci zarobljeni u metalu zavara", "Javlja se u postupcima s troskom (REL, EPP, FCAW) pri nedovoljnom čišćenju slojeva", "Uključak volframa pri TIG zavarivanju", "Kapljica vode na limu"], correct: [0, 1] },
+        { q: "Što je to 'Uključak volframa' (Tungsten inclusion) i u kojem se postupku ISKLJUČIVO javlja?", options: ["Greška u REL zavarivanju rutilnom elektrodom", "Nedostatak pri kojem čestice s volframove elektrode pređu u metal zavara", "Javlja se ISKLJUČIVO pri TIG (141) zavarivanju", "Greška nastala pri rezanju plazmom"], correct: [1, 2] },
+        { q: "Koji su najčešći uzroci prelaska volframa u talinu pri TIG zavarivanju?", options: ["Dodirivanje taline ili dodatne žice vrhom elektrode", "Previsoka struja za dani promjer elektrode", "Loša plinska zaštita elektrode", "Korištenje izmjenične struje na čeliku"], correct: [0, 1, 2] },
+        { q: "Kako se na Radiografskoj snimci (RT filmu) prikazuje uključenje volframa u zavaru?", options: ["Kao potpuno CRNA mrlja u obliku rupe", "Kao izrazito SVIJETLA (bijela) točka ili mrlja", "Razlog je što volfram ima znatno veću gustoću i jače upija zračenje od čelika", "Volfram se uopće ne vidi na RT snimci"], correct: [1, 2] },
+        { q: "Kako se na Radiografskoj snimci (RT filmu) prikazuju šupljine (pore) i neprovari?", options: ["Kao svijetlo bijele točke", "Kao TAMNE (crne) mrlje ili linije", "Razlog je što plin i praznina slabije upijaju zračenje od metala", "Kao izbočine na filmu"], correct: [1, 2] },
+        { q: "Što je to 'Ispitivanje nepropusnosti' (Leak testing - LT)?", options: ["Mjerenje debljine boje sprejem", "Skup metoda kojima se provjerava prolaze li plinovi ili tekućine kroz stijenku posude/cijevi", "Ispitivanje se izvodi pomoću pretlaka, vakuuma, helija ili sapunice", "Ispitivanje vlačne čvrstoće vodenim mlazom"], correct: [1, 2] },
+        { q: "Zašto se metoda detekcije propuštanja pomoću Helija (Helium Leak Testing) smatra najosjetljivijom metodom LT-a?", options: ["Molekule helija su iznimno male i inertne", "Helij brzo prodiže kroz najfinije mikroskopske pukotine", "Propuštanje se detektira masenim spektrometrom", "Helij boji pukotinu u crveno"], correct: [0, 1, 2] },
+        { q: "Što je to 'Hidrostatsko ispitivanje pod tlakom' (Tlačni pokus vodom)?", options: ["Punjenje tlačne posude ili cjevovoda vodom", "Podizanje tlaka na ispitni tlak (1.25 do 1.5 puta veći od radnog)", "Ispitivanje u određenom vremenskom trajanju", "Ispitivanje otpornosti čelika na koroziju u moru"], correct: [0, 1, 2] },
+        { q: "Zašto se tlačni pokus izvod sa VODOM, a ne sa ZRAKOM ili plinom kad god je to moguće?", options: ["Zbog sigurnosti radnika i okoline", "Voda je praktički nestlačiva te u slučaju pucanja ne dolazi do razorne eksplozije", "Voda je jeftinija od zraka", "Plin uništava čelične stijenke"], correct: [0, 1] },
+        { q: "Što je to 'Pneumatsko ispitivanje pod tlakom' i kada se primjenjuje?", options: ["Ispitivanje guma na automobilu", "Ispitivanje tlakom plina ili zraka", "Primjenjuje se samo kada posuda ne smije doći u dodir s vodom", "Zahtijeva iznimno stroge mjere sigurne udaljenosti"], correct: [1, 2, 3] },
+        { q: "Koja je norma nadležna za izradu i sigurnost tlačnih oprema u Europskoj Uniji (Direktiva za tlačnu opremu)?", options: ["PED 2014/68/EU (Pressure Equipment Directive)", "CPR 305/2011 (Construction Products Regulation)", "Machinery Directive 2006/42/EC", "ISO 9001"], correct: [0] },
+        { q: "Što je to 'CE znak' na zavarenoj konstrukciji ili tlačnoj posudi?", options: ["Oznaka da je proizvod napravljen u Kini", "Oznaka sukladnosti sa svim bitnim zahtjevima direktiva Europske Unije", "Proizvod je projektiran, izrađen i ispitan u skladu s EU normama", "Oznaka za besplatnu dostavu"], correct: [1, 2] },
+        { q: "Koja je uloga 'Notificiranog tijela' (Notified Body - NoBo) u kontekstu PED direktive i normi za konstrukcije?", options: ["Sindikat radnika u brodogradnji", "Nezavisna organizacija ovlaštena od strane države i EU", "Provodi ocjenjivanje sukladnosti, odobravanje postupaka i atestiranje", "Ured za financijsku inspekciju tvrtke"], correct: [1, 2] },
+        { q: "Što propisuje norma EN 1090-2?", options: ["Zahtjeve za izradu plastičnih prozora", "Tehničke zahtjeve za izvedbu čeličnih konstrukcija", "Propisuje pravila za izradbu, zavarivanje, tolerancije, NDT i zaštitu od korozije", "Pravila za projektiranje drvenih kuća"], correct: [1, 2] },
+        { q: "Koje su Osnovne Razredne Izvedbe (EXC - Execution Class) definirane u EN 1090-2?", options: ["EXC1 (najmanji rizik)", "EXC2 (standardne zgrade) i EXC3 (mostovi, teške konstrukcije)", "EXC4 (iznimne katastrofalne posljedice)", "EXC A, EXC B, EXC C i EXC D"], correct: [0, 1, 2] },
+        { q: "Za koji je razred izvedbe (EXC) u EN 1090-2 obavezna primjena norme EN ISO 3834-2 (Cjeloviti zahtjevi za kvalitetu)?", options: ["Samo za EXC1", "Za EXC3 i EXC4", "Za visoko opterećene konstrukcije u EXC2", "Za nijedan razred"], correct: [1, 2] },
+        { q: "Što je to 'FPC' (Factory Production Control) prema EN 1090-1?", options: ["Vanjska inspekcija zaštite od požara", "Stalna interna kontrola proizvodnje u tvornici", "Sustav koji uspostavlja i dokumentira sam proizvođač radi CE znaka", "Sustav za obračun plaća radnika"], correct: [1, 2] },
+        { q: "Koja je uloga koordinatora zavarivanja (IWE/IWT) u sustavu FPC tvrtke certificirane prema EN 1090?", options: ["Samo potpisivanje putnih naloga za vozače", "Odgovornost za cjelokupan proces zavarivanja od pregleda narudžbe do završne kontrole", "Odgovornost za odabir materijala, WPS-ove i ateste", "Održavanje čistoće uredu"], correct: [1, 2] },
+        { q: "Što je to 'Kritična debljina' (Critical thickness) kod procjene potrebe za predgrijavanjem?", options: ["Debljina iznad koje odvođenje topline postaje trodimenzionalno (3D)", "Granica iznad koje se drastično ubrzava hlađenje zavara", "Najveća debljina limova koja se može odrezati škarama", "Debljina sloja boje na čeliku"], correct: [0, 1] },
+        { q: "Kada odvođenje topline pri zavarivanju prelazi iz Dvodimenzionalnog (2D) u Trodimenzionalno (3D)?", options: ["Pri zavarivanju u vakuumskom prostoru", "Kada je debljina lima 't' veća od kritične debljine", "Tipično za čelik pri t > 10 do 15 mm (ovisno o unosu topline)", "To ovisi samo o duljini kabela za masu"], correct: [1, 2] },
+        { q: "Kako trodimenzionalno (3D) odvođenje topline utječe na brzinu hlađenja (t8/5)?", options: ["Usporava hlađenje za tri puta", "Znatno ubrzava hlađenje taline i ZUT-a", "Povećava rizik od stvaranja krtog martenzita i hladnih pukotina", "Zaustavlja hlađenje i drži temperaturu konstantnom"], correct: [1, 2] },
+        { q: "Što predstavlja pojam 't8/5 vrijeme' u tehnologiji zavarivanja?", options: ["Vrijeme rada zavarivača u smjeni", "Vrijeme potrebno da se metal zavara i ZUT ohlade s 800 °C na 500 °C", "Područje najvažnijih strukturnih transformacija u čeliku", "Vrijeme sušenja bazičnih elektroda"], correct: [1, 2] },
+        { q: "Kako se može PRODUŽITI t8/5 vrijeme hlađenja ako prijeti opasnost od stvaranja krtog martenzita?", options: ["Hlađenjem zavara komprimiranim zrakom", "Povećanjem unosa topline (Q)", "Primjenom predgrijavanja osnovnog materijala", "Uklanjanjem obloge s elektrode"], correct: [1, 2] },
+        { q: "Kako se može SKRATITI t8/5 vrijeme ako prijeti opasnost od ukrupnjavanja zrna i pada žilavosti kod sitnozrnatih čelika?", options: ["Smanjenjem unosa topline (bržim radom, tanjim prolazima)", "Ograničenjem međuslojne temperature", "Povećanjem predgrijavanja na 500°C", "Korištenjem deblje elektrode"], correct: [0, 1] },
+        { q: "Što je to 'Martenzit' u strukturi čelika i kakva su mu mehanička svojstva?", options: ["Mekana i rastezljiva struktura poput čistog željeza", "Iznimno tvrda, krhka i napregnuta mikrostruktura", "Nastaje naglim hlađenjem austenita te je osjetljiva na pucanje", "Struktura otporna na sve vrste udaraca na -100°C"], correct: [1, 2] },
+        { q: "Što je to 'Bainit' u strukturi čelika?", options: ["Krhka struktura od čistog ugljika", "Međustruktura nastala hlađenjem bržim od perlitnog, a sporijim od martenzitnog", "Često daje dobru kombinaciju čvrstoće i žilavosti", "Oksidni sloj koji nastaje pri rezanju kisikom"], correct: [1, 2] },
+        { q: "Što je to 'Perlit' u strukturi nelegiranog čelika?", options: ["Čisti ugljik u obliku dijamanta", "Lamelarna mješavina ferita i cementita (Fe3C)", "Nastaje sporim hlađenjem austenita pri 727 °C", "Legura nikla i kroma"], correct: [1, 2] },
+        { q: "Što je to 'Ferit' u strukturi čelika?", options: ["Prostorno centrirana kubična (BCC) rešetka čistog željeza (Alfa-željezo)", "Mekana, duktilna i feromagnetska faza", "Iznimno tvrda faza otporna na habanje", "Tequća faza na 1500°C"], correct: [0, 1] },
+        { q: "Što je to 'Austenit' u strukturi čelika?", options: ["Struktura koja postoji samo na -50°C", "Plošno centrirana kubična (FCC) rešetka željeza (Gama-željezo)", "Nemagnetična, visoko žilava i rastezljiva faza stabilna na visokim temperaturama", "Krhka faza koja puca na dodir"], correct: [1, 2] },
+        { q: "Što je to 'Cementit' (Fe3C)?", options: ["Cementni prah za spajanje limova", "Kemijski spoj željeznog karbida s 6.67% ugljika", "Iznimno tvrd i krt sastojak u mikrostrukturi čelika", "Zaštitna obloga bazičnih elektroda"], correct: [1, 2] },
+        { q: "Što prikazuje 'Kontinuirani TTT dijagram' (Continuous Cooling Transformation - CCT diagram)?", options: ["Dijagram unosa topline u ovisnosti o naponu", "Prikazuje nastanak pojedinih mikrostruktura (F, P, B, M)", "Prikaz u ovisnosti o temperaturi i brzini hlađenja od područja austenita", "Grafikon deformacija limova pod prešom"], correct: [1, 2] },
+        { q: "Kako koordinator zavarivanja koristi CCT dijagram čelika pri izradi WPS-a?", options: ["Za proračun cijene plina", "Za određivanje dopuštenih granica t8/5 vremena hlađenja", "Za definiranje unosa topline i predgrijavanja radi izbjegavanja krtog martenzita", "Za odabir promjera mlaznice"], correct: [1, 2] },
+        { q: "Što je to 'Cinkova groznica' (Zinc fume fever) i kako nastaje kod zavarivača?", options: ["Zazeblost nogu pri radu na hladnom limu", "Akutno trovanje uzrokovano udisanjem dima s cinkovim oksidom (ZnO)", "Nastaje pri zavarivanju/rezanju pocinčanih limova bez zaštite", "Oštećenje sluha od buke"], correct: [1, 2] },
+        { q: "Koji su simptomi 'Cinkove groznice' i kada se javljaju?", options: ["Gubitak vida unutar 1 sekunde", "Groznica, drhtavica, mučnina, glavobolja i suhi kašalj", "Simptomi se javljaju nekoliko sati nakon rada (obično navečer)", "Opadanje kose nakon 5 minuta"], correct: [1, 2] },
+        { q: "Kako se najefikasnije sprječava nastanak cinkove groznice u radionici?", options: ["Pijenjem velikih količina voćnih sokova", "Lokalnim odsisom dimova izravno na mjestu zavarivanja", "Nošenjem respiratora s P3 filterima i brušenjem sloja cinka uz rub žlijeba", "Otvarnjem prozora na udaljenosti od 50 metara"], correct: [1, 2] },
+        { q: "Što je to 'Hexavalent Chromium' (Šesterovalentni krom - Cr(VI)) u dumu zavarivanja i zašto je opasan?", options: ["Plin koji poboljšava rad pluća", "Izrazito kancerogen spoj", "Nastaje pri zavarivanju nehrđajućih čelika i oštećuje dišne puteve", "Bezopasna prašina koja se lako ispuhuje iz nosa"], correct: [1, 2] },
+        { q: "Zašto je ventilacija i lokalni odsis dima (Fume Extraction) kod zavarivanja nehrđajućih čelika stroža nego kod nelegiranog čelika?", options: ["Jer je dim od nehrđajućeg čelika zapaljiv", "Zbog prisutnosti toksičnih i kancerogenih čestica Šesterovalentnog Kroma Cr(VI)", "Zbog prisutnosti čestica Nikla (Ni) u dimu", "Jer dim uništava zidove radionice"], correct: [1, 2] },
+        { q: "Koji tip filtera na zaštitnoj dišnoj maski (respiratoru) pruža zaštitu od najsitnijih kancerogenih čestica metala i dimova zavarivanja?", options: ["Obična kirurška platnena maska za prašinu", "FFP3 filteri visoke učinkovitosti", "P3 filteri visoke učinkovitosti", "Papirnati ubrus privezan trakom"], correct: [1, 2] },
+        { q: "Što je to 'Sklonost krhkom lomu' (Brittle fracture) čeličnih konstrukcija?", options: ["Lagano savijanje limova pod teretom", "Iznenadni, katastrofalni lom konstrukcije pri niskim naprezanjima", "Lom se odvija bez vidljivih prethodnih plastičnih deformacija", "Postupno trošenje vijčanih spojeva"], correct: [1, 2] },
+        { q: "Koja tri faktora pogoduju nastanku krhkog loma čelične konstrukcije?", options: ["Visoka temperatura, mala debljina i ravna površina", "Niska temperatura", "Prisutnost oštrog zareza ili greške", "Visoko vlačno naprezanje (naročito udarno ili troosno)"], correct: [1, 2, 3] },
+        { q: "Što je to 'Temperatura prijelaza' (Transition temperature) u ispitivanju žilavosti čelika?", options: ["Temperatura na kojoj se čelik počinje taliti", "Temperatura pri kojoj materijal prelazi iz žilavog u krhki način sloma", "Temperatura vrenja vode u kupki", "Temperatura peći za žarenje"], correct: [1] },
+        { q: "Zašto se za konstrukcije koje rade na niskim temperaturama (npr. u arktičkim uvjetima ili za LNG spremnike) biraju čelici s iznimno niskom temperaturoom prijelaza?", options: ["Jer su ti čelici dvostruko lakši", "Radi sprječavanja katastrofalnog krhkog loma pod opterećenjem", "Jer se ti čelici lakše bojaju", "Zbog smanjenja potrošnje goriva na gradilištu"], correct: [1] },
+        { q: "Koji se legirni element u čeliku najviše dodaje radi drastičnog poboljšanja žilavosti i snižavanja temperature prijelaza na nisko područje?", options: ["Ugljik (C)", "Sumpor (S)", "Nikal (Ni)", "Fosfor (P)"], correct: [2] },
+        { q: "Za koje se radne temperature koriste čelici s 9% Nikla (9% Ni steel)?", options: ["Za kotlove koji rade na +600 °C", "Za spremnike ukapljenog prirodnog plina (LNG)", "Za primjenu pri radnim temperaturama do -196 °C", "Za pećnice u kućanstvu"], correct: [1, 2] },
+        { q: "Koji se dodatni materijal na bazi Nikla (npr. NiCrMo legure) koristi za zavarivanje 9% Ni čelika?", options: ["Obična nelegirana čelična žica za MAG", "Visokolegirane elektrode/žice na bazi Nikla (Inconel tip)", "Služe radi sprječavanja krhkosti u metalu zavara", "Rutilne elektrode za ugljični čelik"], correct: [1, 2] },
+        { q: "Koji su osnovni zahtjevi za 'Hladno skladištenje' dodatnih materijala u originalnom pakiranju?", options: ["Otvoreno dvorište izloženo kiši i snijegu", "Suha prostorija s kontroliranom temperaturom (min. 15 °C)", "Relativna vlažnost zraka < 60% (ili < 50%)", "Hladnjača na -20 °C"], correct: [1, 2] },
+        { q: "Što su to 'Vakuumski pakirane elektrode' (npr. VacPac / DryPocket)?", options: ["Elektrode koje se koriste samo u svemiru", "Bazične elektrode pakirane u hermetički zatvorenu foliju/kutiju s vakuumom", "Mogu se koristiti IZRAVNO bez prethodnog sušenja", "Elektrode punjene tekućim plinom"], correct: [1, 2] },
+        { q: "Koliko traje dopušteno vrijeme izloženosti (Run-out time) vakuumpakiranih bazičnih elektroda nakon otvaranja pakiranja u umjerenoj klimi?", options: ["Točno 5 minuta", "Obično 8 do 12 sati rada (jedna radna smjena)", "Vrijeme prije nego upiju kritičnu količinu vlage", "Nema vremenskog ograničenja"], correct: [1, 2] },
+        { q: "Što se mora učiniti s bazičnim elektrodama iz vakuumskog pakiranja koje su ostale neiskorištene i izložene zraku duže od dopuštenog vremena?", options: ["Moraju se odmah baciti u otpad", "Moraju se podvrgnuti ponovnom sušenju u peći na 300-350 °C", "Mogu se vratiti u skladište u grijanu komoru", "Mogu se koristiti bez ikakvih problema"], correct: [1, 2] },
+        { q: "Što je to 'Grijana tobolac' (Prijenosni grijač / Quiver) za zavarivača?", options: ["Kutija za nošenje alata i čekića", "Prijenosna grijana futrola", "U njoj se drže osušene bazične elektrode na temp. od 100-150 °C na radnom mjestu", "Spremnik za tekući zaštitni plin"], correct: [1, 2] },
+        { q: "Zašto zavarivač na terenu mora držati bazične elektrode u grijanoj tobolcu tijekom smjene?", options: ["Da mu se elektrode ne bi ohladile i pukle", "Radi sprječavanja apsorpcije vlage iz okolnog zraka", "Radi sprječavanja unosa vodika u metal zavara", "Zato što je to ukras za pojas"], correct: [1, 2] },
+        { q: "Koja je uloga 'Ispitivanja savijanjem vođenog trnom' (Mandrel bend test) kod plastičnih zavarenih spojeva?", options: ["Mjerenje debljine plastike", "Provjera savitljivosti spoja", "Otkrivanje neprovara ili poroznosti na sučeljeno zavarenim plastičnim pločama/cijevima", "Mjerenje točke taljenja plastike"], correct: [1, 2] },
+        { q: "Kako se pripremaju rubovi PE-HD cijevi prije sučeljenog zavarivanja vrućim elementom?", options: ["Zaobljavanjem turpijom za drvo", "Poravnavanjem i planiranjem specijalnim rotirajućim nožem (rezačem)", "Obrada se vrši dok se ne dobije kontinuirana strugotina s obje strane", "Premazivanjem epoksidnim ljepilom"], correct: [1, 2] },
+        { q: "Zašto se nakon planiranja nožem površine PE cijevi više NE SMIJU dodirivati rukama?", options: ["Jer rukavice mogu ostaviti boju", "Masnoća i znoj s ruku kontaminiraju površinu", "Kontaminacija drastično smanjuje čvrstoću zavarenog spoja cijevi", "Nema nikakve opasnosti ako se dodirnu"], correct: [1, 2] },
+        { q: "Što je to 'Pogonski tlak' (Joining pressure) pri sučeljenom zavarivanju PE cijevi?", options: ["Tlak vode unutar cijevi", "Pritisak kojim se čela cijevi pritišću na vruću ploču tijekom zagrijavanja i spajanja", "Tlak koji ostvaruje taljenje i spajanje cijevi", "Tlak ulja u kočnicama automobila"], correct: [1, 2] },
+        { q: "Što je to 'Vrijeme izmjene' (Changeover time) pri sučeljenom zavarivanju PE cijevi?", options: ["Vrijeme zamjene radnika na stroju", "Vrijeme od odicanja cijevi s vruće ploče do spajanja pod tlakom", "Mora biti ŠTO KRAĆE (par sekundi)", "Vrijeme zamjene električnog kabela"], correct: [1, 2] },
+        { q: "Zašto vrijeme izmjene pri zavarivanju PE cijevi mora biti iznimno kratko?", options: ["Da radniku ne bi dosadilo čekati", "Radi sprječavanja hlađenja i oksidacije rastaljenog sloja polimera na zraku", "Oksidacija bi uzrokovala loš i krt spoj", "Zbog uštede električne energije"], correct: [1, 2] },
+        { q: "Koji je izgled pravilnog 'venca' (zrnca) na sučeljeno zavarenom spoju PE cijevi?", options: ["Oštri i tanki bridovi s rupama", "Dva jednakomjerna, glatka i zaobljena prstena", "Prsteni su preklopljeni uzduž cijelog opsega spoja", "Nema nikakvog venca ako je zavar dobar"], correct: [1, 2] },
+        { q: "Što označava skraćenica 'SDR' kod PE cijevi (npr. SDR 11, SDR 17)?", options: ["Standard Direct Rotation", "Standard Dimension Ratio", "Omjer vanjskog promjera cijevi i debljine stijenke (SDR = d / e)", "Steel Distance Rule"], correct: [1, 2] },
+        { q: "Ima li cijev SDR 11 DEBLJU ili TANJU stijenku od cijevi SDR 17 istog vanjskog promjera?", options: ["TANJU stijenku", "DEBLJU stijenku", "Manji SDR broj znači deblju stijenku i veći dopušteni radni tlak", "SDR broj ne ovisi o debljini"], correct: [1, 2] },
+        { q: "Što je to 'Elektrofuzijska spojnica' (EF socket) za PE cijevi?", options: ["Spojnica koja se spaja vijcima bez grijanja", "Fiting s ugrađenom bakrenom otpornom žicom", "Natakne se na pripremljene cijevi i priključi na EF aparat", "Metalna cijev koja se nabije čekićem"], correct: [1, 2] },
+        { q: "Kako elektrofuzijski aparat 'zna' točne parametre (napon, vrijeme grijanja, hlađenje) za određenu EF spojnicu?", options: ["Zavarivač ih sam izmisli na licu mjesta", "Očitavanjem barkoda s naljepnice spojnice pomoću skenera", "Automatskim otporničkim prepoznavanjem od strane aparata", "Aparat mjeri temperaturu zraka u sobi"], correct: [1, 2] },
+        { q: "Zašto se vanjski sloj PE cijevi u duljini uvlačenja u EF spojnicu MORA ostrugati (oguliti) ručnim ili strugačem?", options: ["Radi smanjenja promjera cijevi za 5 mm", "Radi uklanjanja degradiranog oksidnog sloja", "Oksidni sloj nastaje djelovanjem UV zračenja i zraka te sprječava fuziju", "Struganje nije potrebno ako je cijev nova"], correct: [1, 2] },
+        { q: "Kolika je tipična dubina struganja oksidnog sloja s površine PE cijevi prije EF zavarivanja?", options: ["Točno 5 mm", "Oko 0.2 mm", "Kontinuirani tanki sloj po cijelom opsegu", "1 cm"], correct: [1, 2] },
+        { q: "Što se događa ako se PE cijev NE ostruže prije ugradnje u elektrofuzijsku spojnicu?", options: ["Spoj će postati tri puta jači", "Spoj će pod tlakom vode ili plina POPUSTITI (razdvojiti se)", "Uzrok popuštanja je izostanak fuzije lanaca polimera kroz oksidni sloj", "Nema nikakvih posljedica"], correct: [1, 2] },
+        { q: "Što su to 'Indikatori zavarivanja' (pop-up klinovi) na elektrofuzijskoj spojnici?", options: ["Iskre koje izbijaju iz utičnice", "Mali plastični klinovi koji izbiju van iz kućišta spojnice", "Služe kao potvrda da je unutar spojnice stvoren tlak i postignuto taljenje", "Svjetleće diode koje troše bateriju"], correct: [1, 2] },
+        { q: "Što je to 'Kavez za poravnanje' (Stezni uređaj / Alignment clamp) pri zavarivanju PE cijevi?", options: ["Kavez za zaštitu radnika od divljih životinja", "Mehanička stezaljka koja čvrsto drži cijevi nepomičnima", "Sprječava pomicanje ili savijanje cijevi tijekom grijanja i hlađenja", "Stezaljka za spajanje kabela mase"], correct: [1, 2] },
+        { q: "Zašto se stisnuti spoj PE cijevi NE SMIJE pomicati niti izlagati opterećenju prije isteka propisanog vremena hlađenja?", options: ["Jer bi se radnik mogao opeći", "Rastaljeni polimer je još mekan i nestabilan", "Pomicanje bi uzrokovalo unutarnje šupljine i gubitak čvrstoće", "Zbog opasnosti od strujnog udara"], correct: [1, 2] },
+        { q: "Koji se inertni plin najčešće koristi kao nosivi i plazmeni plin pri zavarivanju i rezanju plazmom?", options: ["Čisti Kisik", "Čisti Argon (Ar)", "Mješavine Argona s Vodikom ili Helijem", "Ugljični monoksid"], correct: [1, 2] },
+        { q: "Koji se pomoćni plin dodaje argonu za plazma rezanje visokoaluminijskih legura i nehrđajućeg čelika većih debljina radi povećanja entalpije plamena?", options: ["Čisti ugljični dioksid", "Vodik (H2)", "Dušik (N2)", "Klor"], correct: [1, 2] },
+        { q: "Koja je uloga vodenog mlaza ili 'vodenog stola' (Water table) pri plazma rezanju limova?", options: ["Hlađenje laserske leće", "Smanjenje buke i apsorpcija dima i prašine", "Smanjenje toplinskih deformacija rezanog lima", "Sprječavanje hrđanja aluminija"], correct: [1, 2] },
+        { q: "Koje su osnovne opasnosti pri plazma rezanju na suhom bez odsisnog sustava?", options: ["Izrazito visoka razina buke (>110 dB)", "Intenzivno UV zračenje i teški dimovi metala", "Otrovni plinovi (NOx, ozon)", "Opasnost od smrzavanja prstiju"], correct: [0, 1, 2] },
+        { q: "Kako nastaju Dušikovi oksidi (NOx) i Ozon (O3) tijekom elektrolučnog zavarivanja i rezanja plazmom?", options: ["Iz izgaranja ulja na podu", "Djelovanjem jakog UV zračenja i visokih temperatura luka", "Reakcijom na kisik i dušik iz okolnog zraka", "Iz plinskih boca ako su stare"], correct: [1, 2] },
+        { q: "Zašto su Dušikovi oksidi (NOx) izrazito opasni za dišne organe radnika?", options: ["Jer uzrokuju nagli gubitak sluha", "Uzrokuju jaku iritaciju dišnih puteva", "U većim koncentracijama uzrokuju opasni plućni edem s odgođenim djelovanjem", "Nisu uopće opasni"], correct: [1, 2] },
+        { q: "Što je to 'Ozon' (O3) i kakav miris ima u blizini mjesta zavarivanja?", options: ["Oštar plin plavkaste boje", "Karakterističan 'miris svježine / električnog izbijanja'", "Plin koji jako nadražuje oči i pluća", "Plin bez mirisa koji uspavljuje radnika"], correct: [0, 1, 2] },
+        { q: "Koji postupak zavarivanja generira NAJVEĆU količinu UV zračenja i ozona u okolni zrak?", options: ["REL zavarivanje bazičnom elektrodom na niskim strujama", "TIG zavarivanje aluminija", "MIG zavarivanje aluminija visoko-strujnim lukom u argonu", "Zavarivanje pod praškom (EPP)"], correct: [1, 2] },
+        { q: "Zašto zavarivanje pod praškom (EPP) generira NAJMANJE UV zračenja i dima u radionici?", options: ["Jer EPP ne koristi električnu struju", "Električni luk je u potpunosti prekriven slojem granuliranog praška", "Sloj praška blokira zračenje i plinove", "Jer se rad izvodi u vodenom bazenu"], correct: [1, 2] },
+        { q: "Koji je osnovni nedostatak EPP postupka s ekološkog i zdravstvenog stajališta pri čišćenju troske?", options: ["Stvaranje opasnih količina zapaljivog vodika", "Stvaranje fine prašine od praška i troske", "Prašina sadrži fluoride i silikate te zahtijeva nošenje maske i usisavanje", "Velika buka pri izgaranju praška"], correct: [1, 2] },
+        { q: "Što propisuje norma EN ISO 14175 u tehnologiji zavarivanja?", options: ["Normu za ispitivanje tvrdoće metala", "Klasifikaciju i označavanje zaštitnih plinova i mješavina plinova", "Pravila za lučno zavarivanje i rezanje", "Dimenzije plinskih boca i navoja"], correct: [1, 2] },
+        { q: "Prema EN ISO 14175, kojoj skupini plinova pripadaju čisti Argon i Helij te njihove mješavine?", options: ["Skupini M (Mješoviti aktivni plinovi)", "Skupini I (Inertni plinovi - I1, I2, I3)", "Skupini C (Aktivni plinovi na bazi CO2)", "Skupini R (Reducirajući plinovi)"], correct: [1] },
+        { q: "Prema EN ISO 14175, kojoj skupini plinova pripadaju mješavine Argona s CO2 i/ili Kisikom za MAG zavarivanje?", options: ["Skupini I (Inertni plinovi)", "Skupini M (Mješoviti aktivni plinovi - M1, M2, M3)", "Skupini F (Zapaljivi plinovi)", "Skupini N (Dušični plinovi)"], correct: [1] },
+        { q: "Prema EN ISO 14175, kojoj skupini plinova pripada čisti Ugljični dioksid (CO2)?", options: ["Skupini I1", "Skupini C (Aktivni plin C1)", "Skupini R1", "Skupini M2"], correct: [1] },
+        { q: "Prema EN ISO 14175, kojoj skupini plinova pripadaju mješavine s dodatkom Vodika (H2)?", options: ["Skupini C", "Skupini R (Reducirajući plinovi - R1, R2)", "Skupini I", "Skupini M3"], correct: [1] },
+        { q: "Koji je osnovni razlog što se plin skupine R1 (Ar + H2) NE SMIJE koristiti za zavarivanje feritnih i nelegiranih čelika?", options: ["Vodik reagira s čelikom i pretvara ga u aluminij", "Rizik od unosa vodika u metal zavara", "Rizik od nastanka teških vodikovih (hladnih) pukotina u čeliku", "Vodik ugasi električni luk unutar 1 sekunde"], correct: [1, 2] },
+        { q: "Koja je uloga malo postotka O2 (1-2%) u argonu pri MIG zavarivanju nehrđajućih austenitnih čelika (skupina M11)?", options: ["Ugljičenje metala zavara", "Poboljšanje stabilnosti luka", "Smanjenje površinske napetosti i bolje kvašenje rubova bez gubitka korozijske otpornosti", "Bojenje zavara u crvenu boju"], correct: [1, 2] },
+        { q: "Što je to 'Ekvivalent Dušika' ili utjecaj Dušika u zaštitnom plinu pri zavarivanju Duplex nehrđajućih čelika?", options: ["Dušik u plinu sprječava gubitak dušika iz taline", "Pomaže obnavljanju austenitne faze u metalu zavara i ZUT-u", "Dušik uzrokuje tešku poroznost i izbacuje se iz uporabe", "Dušik pretvara duplex u čisti ferit"], correct: [0, 1] },
+        { q: "Koja je glavna uloga Bakrenog podloška (Copper backing bar) pri zavarivanju?", options: ["Slaganje iskri u redove", "Odvajanje topline i oblikovanje korijenskog zavara", "Sprječavanje prokapljivanja bez privarivanja za čelik", "Ispravljanje napona struje iz mreže"], correct: [1, 2] },
+        { q: "Zašto se bakreni podložak često hladi VODOM pri automatskom zavarivanju lima uzdužnim šavom?", options: ["Da bi se bakar pretvorio u led", "Radi brzog odvođenja topline", "Radi sprječavanja progorijevanja samog bakra i održavanja konstantnih uvjeta hlađenja", "Radi smanjenja mase aparata"], correct: [1, 2] },
+        { q: "Koja je opasnost ako se bakreni podložak pretjerano rastali i pomiješa s tekućim čelikom pod lukom?", options: ["Zavar postaje nehrđajući", "Ulazak bakra na granice zrna čelika uzrokuje tešku bakrenu krhkost", "Pojavljuju se 'tople pukotine' u metalu zavara", "Čelik dobiva zlatnu boju i veću vrijednost"], correct: [1, 2] },
+        { q: "Što je to 'Keramička mlaznica' (Ceramic nozzle) na TIG ili MIG/MAG pištolju i zašto se izrađuje od keramike?", options: ["Mlaznica koja se spaja na vodovod", "Mlaznica koja usmjerava zaštitni plin", "Izrađuje se od Al2O3 keramike jer je izvrstan električni izolator i otporna na visoke temp.", "Mlaznica koja sakuplja trosku iz zraka"], correct: [1, 2] },
+        { q: "Što je to 'Gas Lens' (Plinske leće) u TIG gorioniku?", options: ["Optička leća za povećanje slike zavara", "Sklop od finih mrežica od nehrđajućeg čelika unutar sapnice", "Pretvara turbulentno strujanje plina u savršeno LAMINARNO strujanje", "Filter za čišćenje argona iz boce"], correct: [1, 2] },
+        { q: "Koje su prednosti uporabe Plinske leće (Gas Lens) pri TIG zavarivanju?", options: ["Bolja i stabilnija plinska zaštita", "Mogućnost većeg izvlačenja elektrode (do 20 mm) i rad u uskim žlijebovima", "Ušteda zaštitnog plina", "Smanjenje struje zavarivanja za 90%"], correct: [0, 1, 2] },
+        { q: "Što je to 'Turbulentno strujanje' zaštitnog plina i zašto je ŠTETNO pri zavarivanju?", options: ["Strujanje plina u obliku krugova koje hladi gorionik", "Miješanje zaštitnog plina s okolnim zrakom uslijed prevelikog protoka ili loše mlaznice", "Uzrokuje oksidaciju i pojavu pora u zavaru", "Strujanje plina pod vodom"], correct: [1, 2] },
+        { q: "Što se događa ako zavarivač podesi PREVELIK protok zaštitnog plina na regulatoru (npr. 50 l/min na maloj TIG mlaznici)?", options: ["Zaštita postaje 10 puta bolja", "Laminarno strujanje prelazi u turbulentno", "Povlači okolni zrak u zonu luka uzrokujući oksidaciju i poroznost", "Brzina zavarivanja se poveća 3 puta"], correct: [1, 2] },
+        { q: "Koliki je pravilan raspon protoka argona pri standardnom ručnom TIG zavarivanju čelika mlaznicom br. 6 ili 7?", options: ["1 do 2 l/min", "6 do 10 l/min", "30 do 50 l/min", "Točno 100 l/min"], correct: [1] },
+        { q: "Koja je funkcija 'Pre-flow' (Pred-protok) vremena plina na TIG/MIG aparatu?", options: ["Protok plina nakon završetka rada", "Protok plina nekoliko sekundi PRIJE paljenja luka", "Služi za istiskivanje zraka iz crijeva i zaštitu mjesta početka zavara", "Protok plina tijekom pauze za ručak"], correct: [1, 2] },
+        { q: "Koja je funkcija 'Post-flow' (Poslije-protok) vremena plina na TIG aparatu?", options: ["Protok plina za čišćenje stola", "Protok plina nakon gašenja luka", "Štiti vruću talinu i vrh volframove elektrode od oksidacije dok se ne ohlade", "Grijanje vode u aparatu"], correct: [1, 2] },
+        { q: "Koliko bi otprilike trebalo trajati 'Post-flow' vrijeme plina pri TIG zavarivanju strujom od 150 A s volfram elektrodom Ø2.4 mm?", options: ["Točno 0.1 sekundu", "Oko 8 do 15 sekundi", "Računa se kao otprilike 1 sekunda po svakih 10-15 A struje", "Post-flow nije potreban"], correct: [1, 2] },
+        { q: "Što označava pojava da je vrh volframove elektrode nakon gašenja TIG luka CRN ili TAMNO SMEĐ?", options: ["Da je elektroda vrhunske kvalitete", "Prekratko post-flow vrijeme plina ili propuštanje zraka u gorioniku", "Vrh je oksidirao na zraku dok je bio vruć", "Da je upotrijebljen čisti helij"], correct: [1, 2] },
+        { q: "Koji je izgled pravilno zaštićenog i ohlađenog vrha volframove elektrode nakon gašenja TIG luka?", options: ["Potpuno crni mat vrh s pepelom", "Sjajan, srebrnkasto-metalni vrh", "Vrh bez ikakvih oksida i boja popuštanja", "Zeleni vrh od korozije"], correct: [1, 2] }
+    ];
+
+    let activeQuestions = [];
     let questions = [];
     let currentIndex = 0;
     let score = 0;
@@ -470,33 +895,60 @@
         return array;
     }
 
-    function initMenu() {
-        const container = document.getElementById('menu-buttons-container');
-        container.innerHTML = '';
+    // Korak 1: Korisnik bira vrstu kviza
+    function selectQuizType(type) {
+        if (type === 'old') {
+            activeQuestions = oldQuestions;
+            document.getElementById('app-title').innerText = "Stara ispitna pitanja";
+            document.getElementById('sub-menu-desc').innerText = "Izaberite koliko stara pitanja želite rješavati:";
+        } else {
+            activeQuestions = extendedQuestions;
+            document.getElementById('app-title').innerText = "Novi prošireni kviz (Skripte i Predavanja)";
+            document.getElementById('sub-menu-desc').innerText = "Izaberite koliko pitanja iz proširenog gradiva želite rješavati:";
+        }
 
-        const totalAvailable = rawQuestions.length;
-        const optionsCount = [30, 60, 90, totalAvailable];
+        document.getElementById('main-menu-screen').style.display = 'none';
+        
+        const subMenuContainer = document.getElementById('sub-menu-buttons-container');
+        subMenuContainer.innerHTML = '';
+
+        const totalAvailable = activeQuestions.length;
+        // Dinamički prilagođavamo opcije broja pitanja ovisno o bazi
+        let optionsCount = totalAvailable > 150 ? [30, 60, 90, 150, 200, totalAvailable] : [30, 60, 90, totalAvailable];
 
         optionsCount.forEach(count => {
             const btn = document.createElement('button');
             btn.className = 'btn';
-            if (count === totalAvailable) {
+            if (count >= totalAvailable) {
                 btn.innerText = `Sve (ukupno ${totalAvailable} pitanja)`;
             } else {
                 btn.innerText = `${count} pitanja`;
             }
             btn.onclick = () => startQuiz(count);
-            container.appendChild(btn);
+            subMenuContainer.appendChild(btn);
         });
 
-        document.getElementById('menu-screen').style.display = 'block';
+        document.getElementById('sub-menu-screen').style.display = 'block';
+    }
+
+    function goToMainMenu() {
+        document.getElementById('sub-menu-screen').style.display = 'none';
         document.getElementById('quiz-screen').style.display = 'none';
         document.getElementById('results-screen').style.display = 'none';
         document.getElementById('review-screen').style.display = 'none';
+        document.getElementById('main-menu-screen').style.display = 'block';
+        document.getElementById('app-title').innerText = "IWE Kviz - Glavni Izbornik";
+    }
+
+    function goToSubMenu() {
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('results-screen').style.display = 'none';
+        document.getElementById('review-screen').style.display = 'none';
+        document.getElementById('sub-menu-screen').style.display = 'block';
     }
 
     function startQuiz(limit) {
-        let shuffledAll = JSON.parse(JSON.stringify(rawQuestions));
+        let shuffledAll = JSON.parse(JSON.stringify(activeQuestions));
         shuffle(shuffledAll);
         
         questions = shuffledAll.slice(0, Math.min(limit, shuffledAll.length));
@@ -505,19 +957,19 @@
         currentIndex = 0;
         score = 0;
 
-        document.getElementById('menu-screen').style.display = 'none';
+        document.getElementById('sub-menu-screen').style.display = 'none';
         document.getElementById('quiz-screen').style.display = 'block';
         loadQuestion();
     }
 
     function confirmCancel() {
-        if (confirm("Jeste li sigurni da želite odustati od ovog kviza i vratiti se na glavni meni?")) {
-            initMenu();
+        if (confirm("Jeste li sigurni da želite odustati od ovog kruga i vratiti se nazad?")) {
+            goToSubMenu();
         }
     }
 
     function openReviewAllFromMenu() {
-        showReviewScreen(rawQuestions, "Pregled svih pitanja i točnih odgovora");
+        showReviewScreen(activeQuestions, "Pregled svih pitanja i točnih odgovora izabranog kviza");
     }
 
     function openReviewCurrentSession() {
@@ -525,7 +977,8 @@
     }
 
     function showReviewScreen(questionsArray, titleText) {
-        document.getElementById('menu-screen').style.display = 'none';
+        document.getElementById('main-menu-screen').style.display = 'none';
+        document.getElementById('sub-menu-screen').style.display = 'none';
         document.getElementById('quiz-screen').style.display = 'none';
         document.getElementById('results-screen').style.display = 'none';
         
@@ -604,7 +1057,6 @@
             tagSpan.id = `tag-${index}`;
             li.appendChild(tagSpan);
             
-            // Klik bilo gdje na redak prebacuje kvačicu
             li.onclick = (e) => {
                 if (!input.disabled) {
                     if (e.target !== input) {
@@ -757,11 +1209,7 @@
         document.getElementById('percentage-display').innerText = `Postotak uspješnosti: ${percentage.toFixed(1)}%`;
     }
 
-    function goToMenu() {
-        initMenu();
-    }
-
-    window.onload = initMenu;
+    window.onload = goToMainMenu;
 </script>
 
 </body>
