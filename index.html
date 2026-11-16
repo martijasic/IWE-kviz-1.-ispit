@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IWE Kviz - Kompletna Priprema</title>
+    <title>IWE Kviz - Kompletna Priprema (1. i 2. ispit)</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -47,7 +47,7 @@
             margin-bottom: 20px;
             font-size: 1.5rem;
         }
-        .main-menu-screen, .sub-menu-screen, .quiz-screen, .results-screen, .review-screen {
+        .main-menu-screen, .type-menu-screen, .sub-menu-screen, .quiz-screen, .results-screen, .review-screen {
             display: none;
         }
         .active-screen {
@@ -256,6 +256,17 @@
             color: #cbd5e1;
             border: 1px solid #64748b;
         }
+        .q-note {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px dashed #64748b;
+            background-color: rgba(100, 116, 139, 0.15);
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            font-weight: 400;
+            text-align: left;
+        }
         .results-screen {
             text-align: center;
         }
@@ -275,13 +286,17 @@
 <div class="container">
     <h1 id="app-title">IWE Kviz - Glavni Izbornik</h1>
     
-    <!-- 1. GLAVNI MENI (ODABIR KVIZA) -->
+    <!-- 1. GLAVNI MENI (ODABIR ISPITA) -->
     <div id="main-menu-screen" class="main-menu-screen active-screen">
+        <p style="text-align: center; color: #94a3b8; margin-bottom: 20px;">Izaberite ispit za koji želite vježbati:</p>
+        <div class="menu-buttons" id="exam-buttons-container"></div>
+    </div>
+
+    <!-- 1b. MENI VRSTE KVIZA (STARA PITANJA / PROŠIRENI KVIZ) -->
+    <div id="type-menu-screen" class="type-menu-screen">
         <p style="text-align: center; color: #94a3b8; margin-bottom: 20px;">Izaberite koji kviz želite rješavati:</p>
-        <div class="menu-buttons">
-            <button class="btn" onclick="selectQuizType('old')">📜 Stara ispitna pitanja (127 pitanja)</button>
-            <button class="btn" onclick="selectQuizType('extended')">🚀 Novi prošireni kviz (Stara pitanja + Skripte + Predavanja)</button>
-        </div>
+        <div class="menu-buttons" id="type-buttons-container"></div>
+        <button class="btn btn-cancel" onclick="goToMainMenu()" style="margin-top: 15px; width: 100%;">⬅ Nazad na odabir ispita</button>
     </div>
 
     <!-- 2. POD-MENI (ODABIR BROJA PITANJA) -->
@@ -289,7 +304,7 @@
         <p id="sub-menu-desc" style="text-align: center; color: #94a3b8; margin-bottom: 20px;"></p>
         <div class="menu-buttons" id="sub-menu-buttons-container"></div>
         <button class="btn btn-secondary" onclick="openReviewAllFromMenu()" style="margin-top: 15px;">📚 Pregled svih pitanja s odgovorima</button>
-        <button class="btn btn-cancel" onclick="goToMainMenu()" style="margin-top: 10px; width: 100%;">⬅ Nazad na odabir kviza</button>
+        <button class="btn btn-cancel" onclick="goToTypeMenu()" style="margin-top: 10px; width: 100%;">⬅ Nazad na odabir kviza</button>
     </div>
 
     <!-- KVIZ EKRAN -->
@@ -323,7 +338,7 @@
         <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
             <button class="btn btn-secondary" onclick="openReviewCurrentSession()">📝 Pregled pitanja i točnih odgovora iz ovog kruga</button>
             <button class="btn" style="width: 100%;" onclick="goToSubMenu()">Nazad na meni kviza</button>
-            <button class="btn btn-cancel" style="width: 100%;" onclick="goToMainMenu()">Glavni izbornik (Odabir kviza)</button>
+            <button class="btn btn-cancel" style="width: 100%;" onclick="goToMainMenu()">Glavni izbornik (Odabir ispita)</button>
         </div>
     </div>
 
@@ -336,6 +351,9 @@
 </div>
 
 <script>
+    // =====================================================================
+    // 1. ISPIT – PODRUČJE 1: POSTUPCI ZAVARIVANJA I OPREMA
+    // =====================================================================
     // Baza 1: Stara ispitna pitanja (1 - 127)
     const oldQuestions = [
         { q: "Pri zavarivanju istosmjernom strujom više se zagrijava na:", options: ["anoda", "katoda", "obje jednako", "katoda kod TIG, a anoda kod MIG"], correct: [0] },
@@ -879,6 +897,527 @@
         { q: "Koji je izgled pravilno zaštićenog i ohlađenog vrha volframove elektrode nakon gašenja TIG luka?", options: ["Potpuno crni mat vrh s pepelom", "Sjajan, srebrnkasto-metalni vrh", "Vrh bez ikakvih oksida i boja popuštanja", "Zeleni vrh od korozije"], correct: [1, 2] }
     ];
 
+    // =====================================================================
+    // 2. ISPIT – PODRUČJE 2: MATERIJALI
+    // Baza 3: Stara ispitna pitanja iz datoteke Banka_pitanja_Podrucje2_KONACNA.xlsx
+    //   - međunarodni ispit 19.1.2013. (tip A i B) s ključem
+    //   - zbirka "2. dio" (pitanja s označenim odgovorima; ključ je od autora zbirke)
+    //   - nova pitanja s ispita 13.12.2014.
+    // Polje "note" (neobavezno) prikazuje se nakon odgovora i u pregledu pitanja.
+    // =====================================================================
+    const oldQuestions2 = [
+        { q: "Koji spoj(evi) se koriste u cilju smanjenja nečistoća (npr. S i P) u čeliku?", options: ["Fe2C", "SiO2", "TiO2", "CaCO3"], correct: [3] },
+        { q: "Kristalna struktura dvije različite metalografske faze u materijalu može biti:", options: ["segregirana", "nekoherentna", "granice dvojnika", "koherentna"], correct: [1, 3] },
+        { q: "Koji od sljedećih elemenata ima največi utjecaj na prokaljivost čelika?", options: ["Cr", "Mn", "Al", "Cu"], correct: [0] },
+        { q: "Koja(e) od navedenih tvrdnji je(su) ispravna(e) za TTT dijagram čelika?", options: ["TTT dijagrami se koriste za predviđanje mikrostruktura u uvjetima kontinuiranog hlađenja", "kemijski sastav čelika utječe na TTT dijagrame", "TTT dijagrami se koriste za predviđanje ravnotežnih struktura čelika", "TTT dijagrami se koriste za procjenu količine bainita i martenzita u mikrostrukturi"], correct: [1, 3] },
+        { q: "Popuštanje zavara na čeliku je toplinski postupak koji se primjenjuje u cilju:", options: ["djelomičnog obnavljanja strukture zrna metala u stanje prije zavarivanja", "sačuvanja njihove strukture uz mijenjanje mehaničkih svojstava", "promjene njihove strukture, poboljšavajući na taj način njihova mehanička svojstva", "obnavljajući u potpunosti strukture metala na njihovo stanje prije zavarivanja"], correct: [0, 2] },
+        { q: "Što od navedenog u potpunosti određuje kemijski sastav metala zavara?", options: ["osnovni materijal, dodatni materijal i svaki metal sadržan u prašku ili oblozi", "dodatni materijal u obliku elektrode ili taljive žice", "za većinu postupaka zavarivanja koji se sada koriste, metal zavara se u potpunosti sastoji od upotrebljenih dodatnih materijala", "općenito, pretopljeni osnovni materijal"], correct: [0] },
+        { q: "Materijal se opisuje kao uvjetno zavarljiv:", options: ["kada su opisane zavarivačke procedure, postoje specijalne procedure koje su potrebne (predgrijavanje, toplinska obrada, ...)", "kada se materijal jako deformira tijekom zavarivanja", "kada se zahtijeva primjena posebnih postupaka zavarivanja", "u pravilu, svi su materijali dobro zavarljivi"], correct: [0, 2] },
+        { q: "Koja od navedenih tvrdnji je(su) ispravna(e) u slučaju zavarivanja sitnozrnatog konstrukcijskog čelika S690QL?", options: ["može se zavarivati kad termokreda koja pokazuje temperature predgrijavanja i međuslojne temperature promijeni boju", "može se zavarivati kada nijedna od termokreda ne promijeni boju", "može se zavarivati samo kad termokreda koja pokazuje temperaturu predgrijavanja promijeni boju", "pri primjeni postupka 111 uz upotrebu odgovarajućeg dodatnog materijala uvjek je preporučljivo predgrijati osnovni materijal u cilju izbjedavanja pojave pukotina izazvanih vodikom"], correct: [2] },
+        { q: "Najvažniji parametri za učinkovitu TMO obradu čelika su:", options: ["temperatura austenitizacije", "temperatura kaljenja", "temperatura valjanja", "stupanj deformacije"], correct: [2, 3] },
+        { q: "Koji od materijala je(su) osjetljiv(i) na lamelarno odvajanje?", options: ["Re = 460 N/mm2; A5 = 20; ZD = 35 %", "Re = 235 N/mm2; A5 = 30; ZD = 40 %", "Re = 235 N/mm2; A5 = 30; ZD = 10 %", "Re = 355 N/mm2; A5 = 25; ZD = 10 %"], correct: [2, 3] },
+        { q: "U gradnji mostova, prednost(i) čelika povišene čvrstoće u odnosu na uobičajene konstrukcijske čelike je(su):", options: ["jednostavnija korozijska zaštita", "visoka granica razvlačenja", "niska prijelazna temperatura", "veliki Yangov modul (modul elastičnosti)"], correct: [1, 2] },
+        { q: "Zavareni sklopovi koji rade na niskim temperaturama mogu biti izrađeni od:", options: ["niskolegiranih čelika otpornih na puzanje", "martenzitnih modificiranih čelika s 9 do 12% Cr", "konstrukcijskih ugljičnih čelika sa sadržajem ugljika iznad 0,2%", "ovisno o najnižoj radnoj temperaturi: CrNi čelici, duplex s 3 ili 9% Ni ili niskougljičnih niskolegiranih konstrukcijskih čelika"], correct: [3] },
+        { q: "Koji od sljedećih elemenata pridonose J faktoru?", options: ["Mn", "As", "P", "S (Tu nikad nismo bili sigurni niušta)"], correct: [0, 2] },
+        { q: "Koji čimbenik(ci) uzrokuje(u) pukotine izazvane napetostnom korozijom u CrNi čeliku?", options: ["visok sadržaj ugljika", "velika tlačna naprezanja", "elektroliti koji sadrže kloride ili fluoride", "velika vlačna naprezanja ili zaostala naprezanja nakon zavarivanja"], correct: [2, 3] },
+        { q: "Kako se koristi Schafflerov dijagram kada se zavaruje nehrđajući čelik?", options: ["izračunavanjem Ni i Cr ekvivalenta može se predvidjeti mikrostruktura metala zavara", "iz Schafflerovog dijagrama može se predvidjeti razvoj duplex gama i delta struktue, ako je prva faza koja se skrućuje delta ferit", "uz pomoć Schafflerovog dijagrama može se predvidjeti količina delta ferita zavara", "Schafflerov dijagram omogućava procjenu topljivosti vodika u metalu zavara"], correct: [0, 2] },
+        { q: "Koje(a) svojstvo(a) određujemo kada će jedno tijelo prodirati trenjem u drugo?", options: ["gustoća", "tvrdoća", "čvrstoća", "žilavost"], correct: [2] },
+        { q: "Debljina sloja nanesenog vrućim pocinčavanjem je oko:", options: ["1 µm", "60 µm", "300 µm", "5 µm"], correct: [1] },
+        { q: "Koji se čelici otporni na puzanje koriste pri temperaturama iznad 7000 C?", options: ["nelegirani feritni čelici", "nelegirani feritno-perlitni čelici", "Cr-Mo-V-W-Nb-Ti čelici vrste P91 – P92", "potpuno austenitni čelici"], correct: [2, 3] },
+        { q: "Kako se kuglasti grafit može oblikovati u sivom ljevu?", options: ["dodavanjem Si", "legiranjem s Al", "dodavanjem Mg + Ce", "brzim hlađenjem tijekom skrućivanja"], correct: [2] },
+        { q: "Kada se zavaruje bakar, mora se uzeti u obzir:", options: ["malo toplinsko istezanje", "velika toplinska vodljivost", "mala topljivost vodika", "stvaranje oksida"], correct: [1, 3] },
+        { q: "Kada se zavaruju Ni i legure nikla, potrebno je:", options: ["predgrijavanje na 150 0C prije zavarivanja", "odmastiti i očistiti dijelove prije zavarivanja", "zavariti bez posebnih priprema", "uvrstiti naknadnu toplinsku obradu zavara"], correct: [1] },
+        { q: "Tijekom primarnog postupka proizvodnje Al", options: ["najvažnija je sirovina hematit", "čisti hidratizirani aluminijev oksid se proizvodi iz boksita primjenom Bayerovog postupka", "aluminij se izdvaja iz aluminijskog oksida primjenom ugljika kao reducirajuće tvari", "aluminij se rastvara u rastaljenu talinu ili raspada u Al i O primjenom elektrolize"], correct: [1, 3] },
+        { q: "Zavarljivost raznorodnih spojeva između ugljičnog i nehrđajućeg čelika ovisi o:", options: ["sastavima osnovnog materijala", "razini ugljika u osnovnom materijalu", "sastavu dodatnog materijala", "omjeru miješanja Module 2 - Materials and their behaviour during welding Answer Answer Answer Answer Answer Answer Answer Answer Question Nº Question Nº 1 2 3 4 1 2 3 4 1 (312) 13 (11282) 2 (315) 14 (437) 3 (1586) 15 (411) 4 (255) 16 (23562) 5 (318) 17 (16053) 6 (349) 18 (1284) 7 (11267) 19 (1290) 8 (1475) 20 (21584) 9 (393) 21 (16924) 10 (1481) 22 (1300) 11 (16017) 23 (1305) 12 (13063) Module 2 - Materials and their behaviour during welding Subject: 2.1 - Manufacture and designation of steels"], correct: [0, 2, 3] },
+        { q: "Koji se element(i) može koristiti u svrhu dezoksidacije u MAG zavarivanju čelika?", options: ["Mn", "Si", "Al", "W"], correct: [0, 1, 2] },
+        { q: "Materijal koji ima visok koeficijent otvrdnuća:", options: ["pretrpjet će veliku deformaciju prije loma.", "pokazat će značajnu usmjerenost u mehaničkim svojstvima u žarenom stanju", "ima tendenciju da bude manje osjetljiv na brze stope hlađenja do kojih dolazi tijekom ciklusa zavarivanja", "ima visoku sposobnost povećanja čvrstoće plastičnom deformacijom."], correct: [3] },
+        { q: "Ugljik u željezu je prisutan kao:", options: ["međuprostorni legirajući element", "čvrsta otopina ograničene topljivosti", "supstitucijski legirajući element", "potpuna topljivost čvrste čvrste otopine"], correct: [0] },
+        { q: "Druga faza eutektike je sferna, ako:", options: ["lakoća kristalizacije i površinska entalpija su visoke", "lakoća kristalizacije je velika, a površinska entalpija niska", "lakoća kristalizacije je niska, a površinska entalpija visoka", "lakoća kristalizacije i površinska entalpija su niske"], correct: [1] },
+        { q: "Željezo ima posebno svojstvo postojanja u različitim kristalografskim oblicima u čvrstom stanju. U kojem temperaturnom rasponu postoji kao kubični (FCC) raspored?", options: ["iznad 1390°C", "između 910°C i 1390°C", "ispod 910°C", "Između 723°C i 1390°C"], correct: [1] },
+        { q: "Razlog(i) zašto bi višeprolazni zavar obično bio žilaviji (tougher) od jednoprolaznog zavara je(su) jer:", options: ["stvara se nešto martenzita", "toplina iz jednog prolaza normalizira prethodni prolaz", "toplina iz jednog prolaza pročišćava zrna prethodnog prolaza", "toplina iz jednog prolaza povećava veličinu zrna prethodnog prolaza"], correct: [1, 2] },
+        { q: "Zašto se kaljenje zbog ciklusa zavarivanja smatra nepoželjnim?", options: ["Zato što metal zavara postaje žilav", "Jer uzrokuje lomljivost", "Zato što se vruće pukotine javljaju duž primarnih granica zrna", "Zato što uzrokuje neželjeni stres skupljanja"], correct: [1, 3] },
+        { q: "Koji se postupci trebaju koristiti pri zavarivanju fino zrnatih čelika?", options: ["Namakanje 3 dana nakon zavarivanja 2 sata na 250 °C", "Namakanje odmah nakon zavarivanja 2 sata na 250 °C", "Zavarivanje s vremenom t8/5 od najmanje 30 sekundi", "Zavarivanje korijena s dodatkom manje čvrstoće, kada će se korijen izdubiti"], correct: [1, 3] },
+        { q: "Kod zavarivanja termomehanički obrađenog čelika debljine veće od 15 mm treba koristiti:", options: ["veliki unos topline bez predgrijavanja", "veliki unos topline s predgrijavanjem", "mali unos topline bez predgrijavanja", "mali unos topline s predgrijanjem"], correct: [3] },
+        { q: "Koji je/su preduvjet(i) za pojavu pucanja od korozije u nehrđajućim Cr-Ni čelicima bez Mo?", options: ["Čelik mora imati visok sadržaj ugljika", "Čelik mora imati visoka tlačna naprezanja", "Mora postojati medij koji sadrži klorid", "Mora postojati visoka vlačna zaostala naprezanja zavarivanja"], correct: [2, 3] },
+        { q: "U izgradnji mostova, prednost(i) čelika visoke čvrstoće u odnosu na uobičajene konstrukcijske čelike je(su):", options: ["lakša zaštita od korozije", "visoka granica razvlačenja", "niska prijelazna temperatura", "visoki Youngov modul"], correct: [1, 2] },
+        { q: "Rizik od krhkog loma tijekom zavarivanja kriogenih Ni čelika je veći kada:", options: ["debljina ploče je povećana", "udarna žilavost zavarenog materijala manja je od 27J", "zavareni spoj je rasterećen", "temperatura zavarivanja je viša"], correct: [0, 1] },
+        { q: "Nakon zavarivanja Cr-Mo čelika, optimalna svojstva mogu se postići:", options: ["oslobađanje od stresa", "kaljenje i popuštanje", "normaliziranje", "popuštanje"], correct: [3] },
+        { q: "Pukotinska korozija u području korijena zavarenih cijevi od nehrđajućeg čelika uzrokovana je:", options: ["nepasivirani osnovni metal", "nedostatak brige u pripremi utora", "nedostatak plinske zaštite korijena", "previsoka struja zavarivanja"], correct: [2] },
+        { q: "Feritizacija u ZUT je karakteristika:", options: ["austenitni čelici", "feritni čelici", "duplex čelici", "martenzitni čelici"], correct: [2] },
+        { q: "Ponavljano cikličko trljanje između dvije površine poznato je kao", options: ["Umor 2 – fretting (zajedanje)", "Vibracija", "Trenje"], correct: [1] },
+        { q: "Nitriranje je dobra zaštita od:", options: ["površinski zamor", "abrazija", "erozija", "adhezija"], correct: [1, 2] },
+        { q: "Koji su od sljedećih čelika prikladni za rad na visokim temperaturama iznad 600°C?", options: ["13CrMo 4-5", "X10CrAl 24", "X15CrNiSi25-20", "S235J2G3"], correct: [1, 2] },
+        { q: "Što je od sljedećeg ispravno kada se razmatraju željezno-ugljični materijali za lijevanje?", options: ["Temperatura predgrijavanja određena je ugljikovim ekvivalentom osnovnog materijala i/ili debljinom komada", "Postoje različite vrste grafita u lijevanom željezu.", "C postoji u obliku Fe3C u sivim ljevovima", "Lamelarni grafit postoji u temperiranom lijevanom željezu"], correct: [0, 1] },
+        { q: "Što može uzrokovati poroznost kod zavarivanja mesinga?", options: ["Otapanje dušika u metalu šava", "Otapanje vodika u metalu šava", "Cink isparava zbog niske točke vrenja", "Nedovoljno titana u metalu zavara"], correct: [2] },
+        { q: "Kod zavarivanja čistog nikla TIG-om, koji će od sljedećih koraka vjerojatno smanjiti poroznost?", options: ["Korištenje metala za punjenje koji sadrži mali postotak titana", "Provjerite jesu li ploče savršeno čiste prije zavarivanja", "Korištenje pažljivo kontroliranog predgrijanja", "Pažljiv odabir tehnike i zaštitnog plina"], correct: [0, 1, 3] },
+        { q: "Što uzrokuje gubitak čvrstoće zavarenih spojeva od legure aluminija?", options: ["Žarenje hladno obrađene strukture", "Pretjerano staranje precipitata", "Rast zrna u ZUT", "Kao lijevana struktura u metalu šava"], correct: [0, 2, 3] },
+        { q: "Za spajanje unutarnje obložene cijevi bez pristupa za zavarivanje iznutra:", options: ["koristite materijale za punjenje koji odgovaraju osnovnom materijalu nosača", "morate koristiti materijale za punjenje na bazi Ni", "U većini slučajeva potrebno je koristiti visokolegirani materijal za punjenje preko cijele debljine stijenke cijevi", "Zbog opasnosti od pucanja takvi spojevi nisu prihvatljivi ¸3 Module 2 - Materials and their behaviour during welding Answer Answer Answer Answer Answer Answer Answer Answer Question Nº Question Nº 1 2 3 4 1 2 3 4 1 (232) 13 (401) 2 (11215) 14 (420) 3 (246) 15 (413) 4 (262) 16 (21897) 5 (11231) 17 (16052) 6 (444) 18 (1282) 7 (1228) 19 (15140) 8 (1477) 20 (16260) 9 (392) 21 (16261) 10 (1250) 22 (269) 11 (16017) 23 (1340) 12 (22158)"], correct: [2] },
+        { q: "Udio δ-ferita u metalu zavara kod aust.čel. koji povoljno djeluje na sprječ. toplih pukotina:", options: ["0-2%", "2-12%", "5-10%", "10-25%"], correct: [1] },
+        { q: "Dendritna i Witmanstetenova (beningna) struktura nastaje:", options: ["gnječenjem", "lijevanjem", "toplinskom obradom", "zavarivanjem"], correct: [1, 3] },
+        { q: "Smirivanje čelika je:", options: ["postupak žarenja", "postupak vezanja N2 i O2", "postupak plastičnog deformiranja"], correct: [1], note: "Komentar iz zbirke: Vrši se pomoću Mn Si Al" },
+        { q: "Normalizacija nakon zavarivanja:", options: ["eliminira ljevačku strukturu (veliko zrno) zavara iz zone zav.", "eliminira Witmanstet.u strukt. u dijelu ZUT-a koji je bio ugrijan iznad A3 linije", "blagotvorno utječe na cijeli zavar i strukturu"], correct: [0, 1], note: "Komentar iz zbirke: da, usitnjenje zrna" },
+        { q: "Sto utječe na zaostale napetosti:", options: ["debljina OM koji se zavaruje", "oblik žlijeba za zavarivanje", "način i redoslijed polaganja prolaza i spojeva", "položaj (lokacija) zavarenog spoja na zavarenoj konstrukciji"], correct: [0, 1, 2, 3] },
+        { q: "Glavni cilj visokog popuštanja je:", options: ["smanjenja tvrdoće", "smanjenje napetosti", "eliminacija napetosti"], correct: [0] },
+        { q: "Martenzitna pretvorba odvija se:", options: ["samo uz difuziju", "samo pretvorbom austenitne rešetke", "uz difuziju preko austenitne rešetke", "ništa od navedenog"], correct: [1], note: "Komentar iz zbirke: Difuzija mora potpuno izostati kako bi se C otopljen u austenitu kod brzog hlađenja transformirao u martenzit" },
+        { q: "Prethodno poboljšane čelike treba nakon zavarivanja", options: ["žariti na temperaturu na kojoj su prije popuštan", "žariti na temperaturu popuštanja", "žariti ispod temperature popuštanja"], correct: [1] },
+        { q: "Feritizacija u ZUT-u je karakteristična za:", options: ["austenitni čelik", "duplex čelike", "visokougljični čelik"], correct: [1] },
+        { q: "U oznaci St420 (CRO) brojčani dio oznake znači", options: ["minimalnu čvrstoću Rm", "maksimalnu čvrstoću Rm", "minimalnu granicu razvlačenja Rp0,2 (420 N/mm2)", "maksimalnu granicu razvalčenja Rp0,2", "minimalnu pukotinsku žilavost"], correct: [2] },
+        { q: "Osnovni cilj termomehaničke obrade je", options: ["proizvesti čelik novog sastava", "postići oblikovanjem što višu Rm", "što viši Rp0,2 s istom visinom žilavosti KV (20 °C) i nižim temperaturama sa čelikom postojećeg sastava", "postići što višu žilavost KV i što veću Rm, ne vodeći računa o ekonomskom momentu"], correct: [2], note: "Komentar iz zbirke: Ne | Ne | Da, Tema 2.10 str.83 i 85 | Ne" },
+        { q: "Pri izboru čel. za konstr.dijelove široke primj., pri sobnim i sniž. temp., prednost dati č. koji očvršćavaju mehanizmom:", options: ["stvaranjem mješanaca i udjelom perlita", "unosom novih dislokacija i Orowanovim mehanizmom", "stvaranjem mješanaca i Orowanovoim mehanizmom precipitacije", "Orowana (percipitacije) i Hall-Petch (sitno zrno)"], correct: [3] },
+        { q: "Kako H2 utječe na mehanička svojstva zavarenog spoja:", options: ["povećava žilavost", "smanjuje žilavost", "povećava tvrdoću", "smanjuje tvrdoću", "povećava čvrstoću", "smanjuje čvrstoću"], correct: [1, 5], note: "Ključ u zbirci navodi i odgovor koji ne postoji među ponuđenima." },
+        { q: "Sadržaj H2 u zavarenom spoju se smanjuje:", options: ["odgovarajućim sušenjem dodatnog materijala za zavarivanje", "predgrijavanjem", "pravilnim redoslijedom zavarivanja", "manjim toplinskim inputom", "dogrijavanjem", "kvalitetnom pripremom i čišćenjem žlijebova za zavarivanje"], correct: [0, 1, 5] },
+        { q: "Sadržaj difuzijskog H2 u metalu zavara se iskazuje:", options: ["ml/100 gram metala zavara", "mg/100 gram metala zavara", "bezdimenzijska vrijednost", "cm3/100 gram metala zavara"], correct: [0, 3] },
+        { q: "Dobro zavarljiv čelik koji ima vrijednost C ekv do:", options: ["0,45", "0,02", "0,25", "2-3"], correct: [2] },
+        { q: "Na toplinsku histerezu najjače utječu:", options: ["brzina grijanja", "brzina hlađenja", "volumen epruvete"], correct: [1], note: "Komentar iz zbirke: Tema 2.2, Str 8/30" },
+        { q: "Problemi koji nastaju u zavaru Ni legura su:", options: ["smanjenje žilavosti", "zakaljivost", "tople pukotine", "poroznost"], correct: [2, 3], note: "Komentar iz zbirke: Tema 2.19 str 30/60 | Tema 2.19 str 31/60" },
+        { q: "Omjer Rp0,2 / Rm = 0.7 do 0.9, 0.9 se ne prekoračuje jer:", options: ["Povišenje Rp0.2 izaziva ureznu osjetljivost", "Niži Rp0.2 omogućuje lokalnu trajnu deformaciju i razgradnju šiljaka naprezanja", "Povišenje Rp0.2 daje i sniženje žilavosti KV (20 ºC)", "Povišenje granice razvlačenja Rm izaziva povišenje temperature"], correct: [0, 1, 2] },
+        { q: "Pri određivanju konvencionalne granice razvlačenja Rp0.5, 0.5 znači:", options: ["trajnu deformaciju nakon rastezanja", "ukupnu deformaciju u opterećenom stanju", "pedeset posto trajne deformacije nakon rastezanja"], correct: [0], note: "Komentar iz zbirke: 0.5% trajne deformacije" },
+        { q: "Normalizacija podeutektoidnih čelika podrazumijeva:", options: ["zagrijavanje iznad 1450 °C", "zagrijavanje na temperaturu iznad A3", "zagrijavanje na t = 600 °C", "zagrijavanje na 1350 - 1450 °C"], correct: [1] },
+        { q: "Izbjegavanje senzibilizacije (izlučivanje Cr - karbida) kao posljedica zavarivanja visokolegiranih čelika se postiže:", options: ["sniženjem % C", "legiranjem s Mo", "povišenjem % Cr", "smanjenjem % Ni"], correct: [0, 1], note: "Komentar iz zbirke: Da, Cr i C se vole ko Bandić i Kolinda :) | Mo je važan protiv pittinga" },
+        { q: "Primjenjivost čelika povišene ili visoke čvrstoće u praksi je", options: ["neograničeno", "ograničeno samo ekonomski", "ograničeno tehničkim razlozima (E = konst.)", "ograničeno ekonomskim i tehničkim razlozima (E = konst.)"], correct: [3] },
+        { q: "\"Jarak tvrdoće\" karakterističan je za:", options: ["normalizacija sitnozrnatih čelika, kao posljedica zavarivanja", "poboljšane sitnozmate čelike, kao posljedica kaljenja i popuštanja", "normalizirane sitnozmate čelike t.o.", "poboljšane sitnozmate čelike, kao posljedica pojava pri zavarivanju"], correct: [3] },
+        { q: "Oblik grafitnog (nodulamog) žilavog lijeva je:", options: ["igiličasti", "lisnati", "kuglasti", "valjkasti"], correct: [2], note: "Komentar iz zbirke: Ne | Ne | Tema 2.17 str 39 | Ne" },
+        { q: "Koji čimbenici utječu na strukturne promjene u materijalu:", options: ["brzina zagrijavanja", "brzina ohladivanja", "Q unosenja", "vrsta materijala"], correct: [1, 2, 3], note: "Komentar iz zbirke: Da, Samardžić | Da, Samardžić | Da, Samardžić" },
+        { q: "Koroziju ugljičnog čelika u vodi uzrokuje:", options: ["voda", "O2 otopljen u vodi", "sadrzaj soli u vodi", "sadrzaj kiselina u vodi"], correct: [0, 1, 2, 3] },
+        { q: "Procjena fizikalno-kemijskih transformacija pod utjecajem toplinskog ciklusa zavarivanja razmatra se u okviru:", options: ["operativne zavarljivosti", "metalurške ili lokalne zavarljivosti", "konstrukcije ili globalne zavarljivosti"], correct: [1] },
+        { q: "„Linija staljivanja“ predstavlja:", options: ["granicu između ZUT-a i OM", "granicu između ZUT-a i zone taljenja (MZ)", "granicu između OM i ZS"], correct: [1] },
+        { q: "Napetosti u zavarenom spoju sastoje se od:", options: ["samo pretvorbenih napetosti", "od pretvorbenih i toplinskih napetosti", "samo od toplinskih napetosti"], correct: [1], note: "Komentar iz zbirke: logično" },
+        { q: "Kemijski sastav nelegiranog čelika:", options: ["ne utječe na čvrstoću čelika", "ne utječe na tvrdoću čelika", "utječe na mehanička svojstva", "utječe na tvrdoću čelika"], correct: [2, 3], note: "Komentar iz zbirke: da, recimo %C ovdje direktno igra ulogu | da, recimo %C ovdje direktno igra ulogu" },
+        { q: "Analizom makrosnimke zavarenog spoja utvrđuje se:", options: ["broj slojeva zavara", "širina ZUT-a", "makro nehomogenosti", "vrsta dodatnog materijala", "mikropukotine"], correct: [0, 1, 2], note: "Komentar iz zbirke: ne | makro snimka ne pokazuje mikro pukotine" },
+        { q: "Dislokacije su:", options: ["točkaste nepravilnosti", "linijske nepravilnosti", "površinske nepravilnosti", "volumenske nepravilnosti"], correct: [1] },
+        { q: "Najgušći mogući raspored atoma u rešetci imaju:", options: ["FCC rešetka", "BCC rešetka", "Tetragonalna", "HCP rešetka"], correct: [0], note: "Komentar iz zbirke: da, FCC rešetka najgušće složena rešetka:" },
+        { q: "Veličina zrna može se iskazati", options: ["ekvivalentnim promjerom", "brojem zrna prema ASTM", "brojem zrna na jedinicu površine", "udjelom nečistoća"], correct: [0, 1, 2] },
+        { q: "Čisto željezo ima alotropske modifikacije", options: ["α", "β", "γ", "ρ"], correct: [0, 2] },
+        { q: "α-geni elementi su:", options: ["Mn", "Ni", "Cr", "Si"], correct: [2, 3], note: "Komentar iz zbirke: α-geni: Si, Al, W, Mo, Cr | γ-geni: Mn, Ni, Co, Cu" },
+        { q: "Od HSLA - čelika izrađuju se:", options: ["kuglasti spremnici", "naftne platforme", "zupčanici", "osovine"], correct: [0, 1], note: "Komentar iz zbirke: Podrucje 2, str 730/1881 | Podrucje 2, str 730/1881" },
+        { q: "Mikrostruktura podeutektoidnog čelika na sobnoj temperaturi sastoji se od:", options: ["ferit primarni - α'", "primami austenit", "ledeburit", "perlit"], correct: [0, 3], note: "Komentar iz zbirke: ovaj je puno iznad u FeC | ovaj je puno desnije u FeC" },
+        { q: "Veliko minimalno vrijeme inkubacije u TTT dijagramu znači da je čelik", options: ["slabo prokaljiv", "dobro prokaljiv", "legiran", "nelegiran"], correct: [1], note: "Komentar iz zbirke: da, viber grupa" },
+        { q: "Najpovoljniji mehanizam očvršćenja obzirom na prijelaznu temperaturu", options: ["precipitacija", "Usitnjenjem zrna", "Legiranjem Mn i Ni", "Povećanjem udjela perlita"], correct: [1, 2], note: "Komentar iz zbirke: sitno zrno za niske a grubo za visoke temperature | da, Ni legure za niske temperature" },
+        { q: "Procjena strukture zavarenog spoja u Schafflerovom dijagramu, pomoću", options: ["Cr-ekvivalent", "Ni-ekvivalent", "Cr/Ni ekvivalent", "Cekv", "Stupanj miješanja osnovnog i dodatnog materijala", "Veličini zrna osnovnog materijala"], correct: [0, 1, 4] },
+        { q: "Čelik sa koji ima vrijednost Cekv = 0,65 je:", options: ["lakše zavarljiv", "teže zavarljiv", "ne utječe na zavarivanje"], correct: [1] },
+        { q: "Feritizacija u ZUT-u karakteristična je za", options: ["austenitni čelik", "feritni čelik", "duplex čelike s malim postotkom N2", "duplex čelike s većim postotkom N2", "martenzitne čelike"], correct: [2], note: "Komentar iz zbirke: da, Nikola s viber grupe" },
+        { q: "Po visini granice razvlačenja u prednosti su u skupini korozijski postojanih čelika:", options: ["austenitni čelici", "duplex čelici", "feritni čelici"], correct: [1] },
+        { q: "Za procjenu strukture zavarenih spojeva s povećanim udjelom feritne strukture kod duplex čelika najpouzdaniji je sljedeći strukturni dijagram", options: ["Shafflerov dijagram", "De Longov dijagram", "WRC dijagram"], correct: [2], note: "Komentar iz zbirke: Da, WRC je posebno dobar za duplex" },
+        { q: "Duplex čelici spadaju grupi korozijski postojanih materijala:", options: ["struktura im je feritna", "struktura im je austenitna", "struktura im je feritno martenzitna", "struktura im je austenitno feritna y/α'—> 60/40 ili 40/60"], correct: [3] },
+        { q: "Austenit je:", options: ["kristal mješanac", "ima deformiranu FCC rešetku", "ima deformaciju u FCC rešetki", "može rastvoriti više od 1 %C", "ne može rastvoriti više od 1 % C"], correct: [0, 1, 3], note: "Komentar iz zbirke: Naravno, po FeC moze 2.03%" },
+        { q: "Austenit se pri hlađenju može pretvoriti:", options: ["martenzit", "feriti perlit", "cementit čisti", "bainit"], correct: [0, 1, 3], note: "Komentar iz zbirke: medufaza izmedju P i M" },
+        { q: "Kakvu rešetku ima austenit:", options: ["α", "β", "γ - FCC", "ρ"], correct: [2] },
+        { q: "Prve mikro pukotine se pojavljuju kod umora:", options: ["na površini", "ispod površine", "na početku rada", "nakon većeg broja ciklusa"], correct: [1, 3] },
+        { q: "Tople pukotine u metalu zavara su nerijetko posljedica zavarivanja austenitnih čelika i izbjegavaju se:", options: ["predgrijavanjem", "naknadnom toplinskom obradom", "udjelom γ - ferita (2 - 12%) u strukturi metala zavara", "dodatnim legiranjem cinkom"], correct: [2] },
+        { q: "Hlađenje austenitnog čelika donjim kritičnim intenzitetom postiže se:", options: ["potpuno martenzitna struktura", "djelomično martenzitna struktura", "bezmartenzitna struktura"], correct: [2], note: "Komentar iz zbirke: gornjim krit. Intenzitetom | Da, ako je potpuno martenzitna struktura gornjim ktitičnim intenzitetom" },
+        { q: "Debljina pocinčanog sloja je", options: ["1 μm", "20-30 μm", "25-35 μm", "0,5 μm"], correct: [1, 2], note: "Komentar iz zbirke: Inace je oko 60 μm po stranoj literaturi | Inace je oko 60 μm po stranoj literaturi" },
+        { q: "U gradnji nosača, mostova, dizalica, krovova, visokočvrsti čelici su čelici u prednosti pred običnim zbog:", options: ["visoke granice razvlačenja i otpornosti na izvijanje", "visoke granice razvlačenja Rp0,2 i niske prijelazne temperature", "lakše zaštite od korozijskih djelovanja i njihovih troškova", "povoljnog modula elastičnosti E i koeficijenta toplinskog istezanja", "bezprijekorne zavarljivosti"], correct: [1], note: "Komentar iz zbirke: Musa: Kod visokočvrstih čelika ne govorimo o Re nego o Rp0,2 tj o konvencionalnoj granici razvlačenja. Ovi čelici max 0.2%C i nemaju krhki lom." },
+        { q: "U izboru poboljšanih sitnozrnatih čelika za sanduke radničkih vagoneta i građevinskih kamina odlučujuća je bila spoznaja", options: ["pogoduje oblikovanju deformiranjem", "ovisi o dobroj zavarljivosti", "o dobroj otpornosti na trošenje", "o visokoj žilavosti prekaljenog lima", "o niskoj prijelaznoj temperaturi"], correct: [2], note: "Komentar iz zbirke: ma samo trošenje jer voziš kamen, mokri šljunak i sl a to je abrazivno djelovanje" },
+        { q: "Za izradu pramčanog dijela oplate ledolomca, prednost imaju čelici:", options: ["visoke čvrstoće Rm i granice razvlačenja Rp0,2", "nizak koeficijent prijelazne topline i visoke Rp0,2", "visoke žilavosti KV (20°C) i visoke čvrstoće Rm", "visoke otpornosti na trošenje i niske prelazne temperature"], correct: [3], note: "Komentar iz zbirke: da, ledolomac, lomi na temp vode debelo ispod nule a tu je kao i u cjevariji bitna prijelazna temperatura" },
+        { q: "Za efikasnost termomehaničkih obrada općenito u najvišem stupnju su odlučujući parametri:", options: ["temperatura austenizacije i gašenje", "trajanje oblikovanja i njegova temperatura", "stupanj oblikovanja (perliforming)", "temperatura oblikovanja"], correct: [0, 2, 3], note: "Komentar iz zbirke: Da??, Tema 2.10 str 86 spominje gašenje | ? | Da??, Tema 2.10 str 86 spominje perlit. | Da??, Tema 2.10 str 86 spominje temp.obl." },
+        { q: "Za korozijsku postojanost zavarenih spojeva od nehrđajućeg čelika od značajnih utjecaja su:", options: ["uvjeti zavarivanja", "položaj u kojem je izvedeno zavarivanje", "postupak zavarivanja", "naknadna obrada površine", "brušenje i poliranje", "kemijska obrada"], correct: [0, 3, 4, 5], note: "Komentar iz zbirke: mora se formirati korjen | pasiviziranje | bajcanje" },
+        { q: "Navedi barem četiri vrste korozijskih pojava u području zavarenog spoja kod visokolegiranih čelika:", options: ["IKK", "Pitting", "Napetosna", "Galvanska", "U procjepu"], correct: [0, 1, 2, 3, 4] },
+        { q: "Na korozijsku postojanost zavarenih spojeva imaju utjecaja:", options: ["postupak zavarivanja", "unos topline", "brzina hladenja", "hrapavost povrsine"], correct: [0, 1, 2, 3], note: "Komentar iz zbirke: Naravno, nemoj odradit korjensku zaštitu pa ćeš vidjet :)" },
+        { q: "Tvrdoća je najbolji pokazatelj trošenja:", options: ["da", "ne"], correct: [1], note: "Komentar iz zbirke: Imamo 4 mehanizma trošenja: ABRAZIJA . ADHEZIJA. UMOR POVRŠINE. TRIBOKOROZIJA" },
+        { q: "Pri MIG zavarivanju Al legura koriste se sljedeći zaštitni plinovi:", options: ["Ar", "He", "Ar/He", "He/CO2"], correct: [0, 1, 2], note: "Komentar iz zbirke: da | da | da" },
+        { q: "Čelici sa 3 - 9 %Ni i sa oko 0,1 - 0,15 %C prikladni su za rad pri vrlo niskim temperaturama zahvaljujući", options: ["poboljšanoj Ni - Martenzitnoj strukturi", "izotermički poboljšanoj bainitnoj strukturi", "austenitnoj strukturi"], correct: [0], note: "Komentar iz zbirke: Tema 2.13, str12/86 | Možda ni nisam siguran" },
+        { q: "Kod normaliziranih mikrolegiranih (HSLA) čelika treba područje o načinu povišenja primjenjivosti dati prednost:", options: ["mehanizmu očvršćenja usitnjenjem zrna", "mehanizmu očvršćenja novim dislokacijama", "mehanizmu očvršćenja mješancima"], correct: [0], note: "Komentar iz zbirke: da, oni su sitnozrnati" },
+        { q: "Glavni uzročnik poroznosti u zavarenim spojevima kod Al i njegovih legura:", options: ["N2", "H2", "O2", "CO2"], correct: [1], note: "Komentar iz zbirke: The main cause for porosity in aluminium is hydrogen, which has very high solubility in molten aluminium but very low solubility in solid '''''''''''''''''" },
+        { q: "Za primjenu za rad pri povišenim temperaturama biraju se prije svega Mo čelici zbog toga što", options: ["Mo utječe na povišenje granice razvlačenja Rp0,2, stvaranje mješanaca itd", "Mo nepotrebno poboljšava žilavost", "Mo sprječava ogaranje pri povišenim temperaturama", "Mo povisuje postojanost na opću koroziju Mo povisuje postojanost na rupičastu koroziju", "Mo poboljšava žilavost"], correct: [0, 3, 4], note: "Komentar iz zbirke: U slučaju legiranja ferita znaĉajna je razlika u djelovanju intersticijskih elemenata (npr. ugljik, fosfor, dušik) u odnosu na supstitucijske (npr. molibden i krom). Intersticijski elementi uzrokuju jako očvrsnuće, ali i veliku…" },
+        { q: "Ulazne veličine koje su potrebne za ocjenjivanje očekivane strukture zavarenog spoja u Shafferovom dijagramu su:", options: ["Cr ekvivalent", "Cr/Ni ekvivalent", "Ni ekvivalent", "C ekvivalent"], correct: [0, 2], note: "Komentar iz zbirke: apscisa | ordinata" },
+        { q: "Primjenom Schafflerovog dijagrama kod zavarivanja raznorodnih materijala pojedinih vrsta dodatnog materijala može se kvalitetno:", options: ["procijeniti vjerojatnost nastanka hladnih pukotina", "procijeniti vjerojatnost nastanka toplih pukotina", "procijeniti vjerojatnost pogrubljenja zrna područja ZUT-a iznad 1100 °C", "procijeniti vjerojatnost povećane krhkosti poslije toplinske obrade 500 - 900°C"], correct: [0, 1, 2, 3] },
+        { q: "Schafflerov dijagram se može uspješno koristiti kod:", options: ["grafičkog određivanja temperaturnog područja u cilju izbjegavanja hladnih pukotina", "zavarivanja raznorodnih materijala (čelika)", "procjene naknadne toplinske obrade poslije zavarivanja"], correct: [1] },
+        { q: "Inicijalno mjesto za lamelamo odvajanje je:", options: ["zona taljenja (metal zavara)", "zona utjecaja topline ili zona taljenja", "zona utjecaja topline (ZUT)"], correct: [2], note: "Komentar iz zbirke: Lamellar tearing ) nastaje u zoni utjecaja topline i obično se dalje širi na osnovni materijal," },
+        { q: "Navedi dvije osnovne tople pukotine", options: ["kristalizacijske pukotine", "podsolidosne (likvacijske) pukotine"], correct: [0, 1] },
+        { q: "Hladne pukotine mogu nastati:", options: ["samo u ZUT-u", "mogu nastati i u ZUT-u i u ZT", "samo u ZT"], correct: [1] },
+        { q: "Vjerojatnost nastajanja hladnih pukotina se smanjuje:", options: ["predgrijavanjem", "normalizacijskim žarenjem", "sušenjem elektroda, zaštitnog praška", "pravilnim redoslijedom zavarivanja", "optimalnim toplinskim inputom", "dogrijavanjem nakon zavarivanja"], correct: [0, 2, 3, 4, 5], note: "Komentar iz zbirke: da, da se osigura sporije hlađenje" },
+        { q: "Glavni uzročnici nastajanja hladnih pukotina su:", options: ["visok sadržaj difuzijskog H2, visoka prijelazna temp. i primjena neumirenih čelika", "sklonost strukture OM i ZS zakaljivanju, visok sadržaj difuzijskog H2 u ZS i visoka razina zaostali naprezanja u ZS", "visok Cekv za OM i materijal ZS, visok sadržaj difuzijskog H2 u ZS i visoka razina zaostalih naprezanja u ZS", "Cekv > 0,3 i visoka zaostala naprezanja u ZS"], correct: [1, 2] },
+        { q: "Na visinu zaostalih napetosti (naprezanja) kod zavarivanja utječu:", options: ["debljina materijala koji se zavaruje", "sadržaj difuzijskog H2", "položaj zavarenog spoja na zavarenom komadu", "oblik žlijeba za zavarivanje", "način i redoslijed prolaza i slojeva"], correct: [0, 2, 3, 4] },
+        { q: "Debljina pasivnog sloja kod CrNi čelika se kreće:", options: ["0,1 - 0,5 nm", "0,1 - 0,5 mm", "0,5 - 0,8 mm", "1 - 10 nm"], correct: [3] },
+        { q: "Ekvivalent ugljika C može poslužiti za:", options: ["određivanje žilavosti u ZS", "procjenu sklonosti hladnim pukotinama", "procjenu tvrdoće u ZS"], correct: [2], note: "Komentar iz zbirke: da, C je direktno vezan za tvrdoću" },
+        { q: "Bakar koji sadrži O2:", options: ["prikladan je za REL i MIG zavarivanje:", "nije prikladan za REL i MIG zavarivanje dijelova gdje se pojavljuju povišene temperature više od 500°C", "prikladan za toplinsku obradu", "sadržaj O2 < 1% nema utjecaja na prikladnost za zavarivanje"], correct: [1], note: "Komentar iz zbirke: Tema 2.18 str 54: Iznad 500 C vodik može ući u bakar a ako je on pun kisika, eto stvaranja vodene pare tj sranja moj miki..." },
+        { q: "Brzina korozije izračunamo u g/mm² u odnosu na brzinu prodiranja korozije mm/a treba se pomnožiti sa gustoćom materijala ρ", options: ["ne", "treba podijeliti"], correct: [0, 1] },
+        { q: "Kod izbora visokočvrstih čelika za ledolomce treba izabrati čelik:", options: ["koji ima Rp0,2 visok i nisku prijelaznu ϑ", "koji ima otpornost na habanje", "visoku izdržljivost", "visoku žilavost KV (20 °C) i visok Rm", "visoku otpornost na trošenje"], correct: [0] },
+        { q: "Najveća senzibilizacija austenitnog čelika postiže se (obzirom na Cr - karbide i IKK) pri grijanju na:", options: ["850 ºC", "700 ºC", "430 ºC", "1100 ºC"], correct: [1], note: "Komentar iz zbirke: Najjace je na 650 C a ovo je najblize" },
+        { q: "Koji su osnovni mehanizmi očvrsnuća VČČ za opću primjenu (niske temperature):", options: ["Moll-Peec-ov mehanizam", "Moll-Peec-ov mehanizam + kristali mješanci", "Orvallov mehanizam + postotak perlita"], correct: [1] },
+        { q: "Koje su od navedenih tvrdnji istinite:", options: ["površina hladnih pukotina je tamnija", "površina i kod hladnih i trenja može biti ista", "površina kod hladnih pukotina je svjetlija a kod toplih tamnija"], correct: [2] },
+        { q: "Sitnozrnati čelici u odnosu na konstrukcijske čelike:", options: ["ima veću granicu razvlačenja Rp0,2", "sitnije zrno", "primjenjuju se na visokim temperaturama", "smirivanje sa Al", "smirivanje s Mg"], correct: [0, 1], note: "Komentar iz zbirke: Fine grain steels have good cold formability and toughness. They have fine grain structure due to the low carbon content and micro-alloying elements (e.g. titanium and niobium). | ne, sitno zrno ide za niske temperature, krupno…" },
+        { q: "Normalizirani sitnozrnati čelici imaju:", options: ["0,4 %C", "0,2 %C", "smiren Al", "smiren Mg"], correct: [1, 2], note: "Komentar iz zbirke: Tema 2.10 str 24 | Tema 2.10 str 24" },
+        { q: "Steliti su:", options: ["materijali na bazi Co", "materijali na bazi željeza", "otporni na eroziju kapljicama", "otporni na visoke temperature"], correct: [0, 2, 3], note: "Komentar iz zbirke: Stellite is a range of cobalt-chromium alloys designed for wear resistance. The alloys may also contain tungsten or molybdenum and a small but important amount of carbon." },
+        { q: "Legirani čelici imaju:", options: ["veće minimalno vrijeme inkubacije", "manje minimalno vrijeme inkubacije", "bolju prokaljivost", "lošiju prokaljivost"], correct: [0, 2] },
+        { q: "Ravnotežni dijagram stanja koristi se za analizu legura kod:", options: ["sporog ugrijavanja", "brzog ugrijavanja", "sporog ohlađivanja", "brzog ohlađivanja"], correct: [0, 2], note: "Komentar iz zbirke: Ravnoteža=sporo=stabilno, neravnoteža=brzo=metastabilno" },
+        { q: "Od ultra čvrstih čelika (UČČ) izrađuju se:", options: ["dijelovi trkaćih automobila", "dijelovi batiskafa", "klinovi", "dijelovi ventila"], correct: [0, 2, 3], note: "Komentar iz zbirke: da, provjereno u literaturi koju imamo | Ronilica za istrazivanje vecih morskih dubina | da, provjereno u literaturi koju imamo | da, provjereno u literaturi koju imamo" },
+        { q: "Maraging čelici su:", options: ["imaju dobru zavarljivost", "imaju minimalnu deformaciju pri starenju", "jako očvršćavanje hladnom deformacijom", "su relativno jeftini"], correct: [0, 1], note: "Komentar iz zbirke: TEMA 2.10 - VISOKOČVRSTI ČELICI - Str 73/103 | TEMA 2.10 - VISOKOČVRSTI ČELICI - Str 77/103" },
+        { q: "Ako se Al - legura koristi na sniženim temperaturama do približno - 200 ºC", options: ["smanjuje im se vlačna čvrstoća sa sniženjem radne temperature", "povećava im se vlačna čvrstoća sa sniženjem radne temperature", "smanjuje im se istezljivost sa sniženjem radne temperature", "povećava im se istezljivost sa sniženjem radne temperature"], correct: [1, 3], note: "Komentar iz zbirke: Tema 2.20 str 129 | Tema 2.20 str 130 ima dijagram za A5" },
+        { q: "Isoforming u prednosti je prema perliformingu zbog:", options: ["kraćeg trajanja oblikovanja", "veća prijelazna temperatura", "pogonskih mogućnosti izvođenja"], correct: [2], note: "Komentar iz zbirke: Ne | Ne | Da, Tema 2.10, str 97" },
+        { q: "Očvršćenje ausforming pretežno potječe od:", options: ["stupanj oblikovanja ε = 70%", "precipitacije sitnih karbidnih zrna"], correct: [0, 1], note: "Komentar iz zbirke: Da, Tema 2.10 str 88 | Da, Tema 2.10 str 90" },
+        { q: "Koje od navedenih svojstava ovisi o strukturi metala?", options: ["elastičnost", "toplinska vodljivost", "koeficijent toplinskog širenja", "istezljivost"], correct: [0, 1, 2, 3], note: "Komentar iz zbirke: ovisi o tipu rešetke | isključivo ovisi o materijalu-fizičko svojstvo-veze između atoma | ovisi o jačini sile između atoma" },
+        { q: "Metalurgija čelika započinje proizvodnjom sirovog željeza uglavnom u tzv. visokim pećima od sirovina:", options: ["željezne rude", "metalurškog koksa", "vapna koje je sirovinski dodatak", "sivog sirovog željeza"], correct: [0, 1, 2] },
+        { q: "Kod statičkog vlačnog pokusa:", options: ["kontinuirano se mjeri sila i produljenje epruvete", "kontinuirano se mjeri naprezanje i istezanje", "kontinuirano se mjeri sila i naprezanje", "mogu se upotrebljavati epruvete okruglog i četvrtastog poprečnog presjeka"], correct: [0, 3], note: "Komentar iz zbirke: Vlačni pokus se provodi uređajima (tzv. kidalice) na kojima se ispitni uzorak kontinuirano vlačno opterećuje do loma. Pri ispitivanju se kontinuirano mjere sila i produljenje ispitnog uzorka te se pisačem grafički registrira di…" },
+        { q: "Hookeovim zakonom naziva se izraz:", options: ["σ = E · Ɛ", "σ = E / Ɛ", "σ = E² · Ɛ", "σ = E · Ɛ²"], correct: [0] },
+        { q: "Puzanje čelika nastaje u uvjetima:", options: ["konstantnog opterećenja tokom duljeg vremena na povišenoj temperaturi", "konstantnog opterećenja tokom duljeg vremena na sobnoj temperaturi", "uporabe čelika u agresivnim medijima", "konstantnog opterećenja tokom duljeg vremena na temperaturi između 100 i 200°C"], correct: [0], note: "Komentar iz zbirke: Puzanje je uslijed statičkog opterećenja na visokoj temperaturi | ne | ne | ne" },
+        { q: "Smithov dijagram daje podatak o iznosu dinamičke izdržljivosti nekog materijala za", options: ["različite tipove promjenjivog naprezanja (simetrično, istosmjerno...)", "samo jedan tip promjenjivog naprezanja uz granični broj ciklusa od 103 titraja", "različite tipove promjenjivog naprezanja uz granični broj ciklusa od 103 titraja"], correct: [0], note: "Komentar iz zbirke: For the combined LCF/HCF loading, the procedure is explained, which enables determining the regions in the plane of Smith diagram in which the designing is damage tolerant. ide i do 10exp6" },
+        { q: "Dendritna struktura se stvara jer", options: ["zrna rastu epitaksijalno u odnosu na osnovni materijal i okomito na izoterme", "postoji istovremeno rast unutar zrna", "granice zrna idu u osnovni materijal od linije staljivanja", "ništa od navedenog nije točno"], correct: [0], note: "Komentar iz zbirke: Da, provjereno na viber grupi, kao jelka tj bor" },
+        { q: "Točkaste nesavršenosti kristala su:", options: ["granice zrna", "vakancije", "strani atomi", "dislokacije"], correct: [1, 2], note: "Komentar iz zbirke: ovo su površinske | ovo su linijske" },
+        { q: "Dislokacije su:", options: ["točkaste nesavršenosti", "linijske nesavršenosti", "površinske nesavršenosti", "volumenske nesavršenosti"], correct: [1], note: "Komentar iz zbirke: Tema 2.1 str 48" },
+        { q: "Granice zrna su:", options: ["točkaste nesavršenosti", "linijske nesavršenosti", "površinske nesavršenosti", "volumenske nesavršenosti"], correct: [2], note: "Komentar iz zbirke: da, granice i jestu površina tj oplošje zrna" },
+        { q: "Koja je razlika između eutektičke i eutektoidne pretvorbe?", options: ["nema razlike", "eutektička pretvorba se odvija pri promjeni tekućeg stanja u kruto, tvoreći dvofaznu strukturu; eutektoidna pretvorba odvija se u krutini, gdje se jedna faza pretvara u mješavinu dviju faza", "eutektoidna pretvorba se odvija pri pretvorbi iz krutine u tekuću fazu, a eutektička pretvorba pri promjeni tekuće faze u krutinu, prva se događa pri grijanju, a druga pri hlađenju", "eutektičke strukture se razvijaju kada su elementi u potpunosti rastvorivi, u protivnom se oblikuje eutektoid"], correct: [1], note: "Komentar iz zbirke: Naravno, eutektik, ledeburit L nastaje direktno skrućivanjem taline dok eutektoid tj Perlit P koji je mješavina dvije faze, nastaje is krute faze tj Austenita" },
+        { q: "Sitnozrnata struktura nastaje kod:", options: ["male brzine stvaranja klica", "velike brzine stvaranja klica", "homogene nukleacije", "heterogene nukleacije (Heterogena javlja se uz rub kalupa - velika brzina hlađenja-sitno zrno)"], correct: [1, 3], note: "Komentar iz zbirke: da, primjer je: Poboljšavanje se vrši prvo austenitiziranjem, pa kaljenjem u vodi. Rezultat je sitnozrnata struktura martenzita i/ili međustruktura" },
+        { q: "Ljevačke strukture su:", options: ["dendritna", "Widmannstaetten", "trakasta", "normalizirana"], correct: [0, 1] },
+        { q: "Kristali mješanci mogu biti:", options: ["intermetalni spojevi", "supstitucijski", "intersticijski", "kemijski spojevi"], correct: [1, 2] },
+        { q: "Metali iste kristalne rešetke i male razlike veličine atoma tvore:", options: ["intersticijske mješance", "smiješane kristale", "supstitucijske mješance", "amorfne strukture"], correct: [2] },
+        { q: "Na što najznačajnije utječe brzina hlađenja?", options: ["na ponašanje prilikom pretvorbe iz tekuće faze u krutinu (veća brzina tvrđa struktura)", "na pogrubljenje zrna (veća brzina hlađenja stvara se više klica kristalizacije- manja zrna)", "na naprezanja (veća brzina hlađenja više nečistoća, a i vodik ostaje zarobljen)", "na deformacije"], correct: [0, 1, 2] },
+        { q: "Zaostali austenit se:", options: ["pojavljuje kod čelika s više od 0,6 %C (od 0,6% - 0,8%C kod 20°C)", "pojavljuje kod čelika između 0,3 i 0,5 %C", "eliminira dubokim hlađenjem", "eliminira normalizacijom"], correct: [0, 2], note: "Komentar iz zbirke: Da, Uptonov dijagram | Ne | Da, Uptonov dijagram | Ne" },
+        { q: "TTT-dijagrami koriste se za:", options: ["brzo grijanje", "brzo hlađenje", "određivanje kritične brzine gašenja", "određivanje precipitacijskog žarenja"], correct: [1, 2], note: "Komentar iz zbirke: TTT dijagrami (Time‐Temperature‐ Transformation) povezujuzbivanja pri ohlađivanju od realno sporog ohlađivanja (Fe‐C dijagram) do vrlo brzog ohlađivanja (Uptonov dijagram)" },
+        { q: "Krivulje hlađenja nacrtane su u:", options: ["izotermičkim TTT-dijagrarnima", "kontinuiranim TTT-dijagramima", "Fe-C dijagramima", "Schaefflerovom dijagramu"], correct: [0, 1] },
+        { q: "Toplinske obrade su postupci koji se primjenjuju na čelicima u cilju:", options: ["promjene njihovog kemijskog sastava", "očuvanja njihove strukture i poboljšanja njihovih mehaničkih svojstava", "promjene njihove strukture, poboljšavajući na taj način njihova mehanička svojstva", "u zavarenim konstrukcijama radi obnavljanja strukture osnovnog materijala u izvorno stanje prije zavarivanja"], correct: [2] },
+        { q: "Prokaljivost konstrukcijskog dijela izrađenog od čelika ovisi o:", options: ["kemijskom sastavu čelika", "uvjetima gašenja (nadkritičnog ohlađivanja)", "udjelu P u čeliku", "udjelu S u čeliku"], correct: [0, 1] },
+        { q: "Kod žarenja za redukciju napetosti:", options: ["smanjuju se unutarnje napetosti koje su nastale mehaničkim i toplinskim naprezanjima pri obradi čelika", "granica tečenja se zbog povišenih temperatura kod kojih se provodi žarenje osjetno smanji ispod razine unutarnjih napetosti koje plastično deformiraju obradak čime se razgrađuje dio unutarnjih napetosti", "značajno se poboljšava i rezljivost čelika", "stupanj redukcije unutarnjih napetosti ovisi o visini temperature i trajanju", "žarenja"], correct: [0, 3] },
+        { q: "Rekristalizacijsko žarenje provodi se radi:", options: ["vraćanja deformabilnosti hladno deformacijski očvrsnutom metalu", "povećavanja rezljivosti i oblikovljivosti", "ustinjavanja grubozmate strukture", "ujednačavanja sastava čelika unutar lijevanih poluproizvoda"], correct: [0] },
+        { q: "Zona uz sam metal zavara zove se:", options: ["zona nepotpunog taljenja", "zona utjecaja topline", "zona normalizacije", "zona plavog loma"], correct: [0] },
+        { q: "Zona utjecaja topline u literaturi se naziva:", options: ["HAZ", "ZUT", "ZMT", "TUZ"], correct: [0, 1] },
+        { q: "Stacionarno, odnosno kvazistacionarno temperaturno polje pri zavarivanju javlja se:", options: ["na dovoljnoj udaljenosti od mjesta početka i kraja zavara, kada je \"uspostavljena ravnoteža\" između količine odvedene i dovedene topline, uz uvjet q / v = konstantno", "na početku i na kraju zavara", "zbog postavljanja ulazno - izlaznih ili nastavnih pločica", "na početku zavara"], correct: [0, 2], note: "Komentar iz zbirke: i ovo mislim jer se na ulaznoj pločici ustale parametri neposredno prije prelaska pištolja na OM" },
+        { q: "Koje od navedenih legura su najpodložnije krhkosti izazvane vodikom:", options: ["ugljični čelici s 0,38% ugljika", "18Cr8Ni nehrđajući čelici", "2 ¼ CrMo niskolegirani čelici", "Nb-V mikrolegirani čelici"], correct: [2], note: "Komentar iz zbirke: ovi možda no nisam siguran" },
+        { q: "Koja je od sljedećih tvrdnji istinita:", options: ["viša vrijednost Cekv, znači veću sklonost zakaljivanju i povećanju čvrstoće", "viša vrijednost Cekv, znači bolju zavarljivost", "viša vrijednost Cekv, znači veću sklonost zakaljivanju i višu žilavost", "viša vrijednost Cekv, znači bolju korozijsku postojanost zavarenog spoja"], correct: [0] },
+        { q: "Izraz za Cekv koji je dao IIW:", options: ["je primjenjiv za sve vrste materijala", "je najtočniji pri izračunavanju sklonosti nastanka hladnih pukotina", "je univerzalno primjenjiv", "je primjenjiv samo za jednu grupu čelika"], correct: [1], note: "Komentar iz zbirke: ?, onaj dan dolje u radioni pitali Garašića- kaže da nije primjenjiv samo za jednu grupu čelika" },
+        { q: "Pomoću TTT-dijagrama je moguće:", options: ["odrediti približnu kritičnu brzinu hlađenja", "odrediti temperaturu predgrijavanja", "odrediti potrebnu naknadnu toplinsku obradu", "izračunati brzinu širenja pukotine"], correct: [0] },
+        { q: "Na visinu zaostalih napetosti (naprezanja) kod zavarivanja utječu:", options: ["debljina osnovnog materijala", "položaj (lokacija) zavarenog spoja na zavarenoj konstrukciji", "oblik žlijeba za zavarivanje", "način i redoslijed polaganja prolaza i slojeva"], correct: [0, 1, 2, 3] },
+        { q: "Optimalni toplinski input u cilju dobivanja kvalitetnog zavarenog spoja može se odrediti na osnovu:", options: ["TTT-dijagrama i podataka o graničnim vrijednostima i optimiziranju vrijednosti trajanja hlađenja od 800 do 500°C", "makro analize strukture zavarenog spoja", "mikro analize strukture zavarenog spoja", "statističkim obradama parametara zavarivanja"], correct: [0] },
+        { q: "Normalizirani sitnozrnati čelik S 355N debljine lima 5mm zavaruje se kako je navedeno", options: ["bez predgrijavanja", "primjenjujući dodatni materijal vrste E 35 B 42 H5 prema normi EN 499", "s posebno velikim unosom topline po jedinici dužine zavara", "nakon zavarivanja treba provesti odžarivanje radi odnavljanja sitnozmatih precipitata"], correct: [0, 1], note: "Komentar iz zbirke: H5 low hydrogen" },
+        { q: "HSLA čelici su:", options: ["opći konstrukcijski", "ausforming", "sitnozrnati normalizirani", "sitnozrnati poboljšani"], correct: [2, 3], note: "Komentar iz zbirke: ovaj nije HS | ovo je TMO | Tema 2.11 str 9 | Tema 2.11 str 9" },
+        { q: "Poboljšani sitnozrnati čelici imaju:", options: ["granicu razvlačenja između 500 i 1000 N/mm2", "granicu razvlačenja između 1000 i 2000 N/mm2", "do 0,6%C", "do 0,2%C"], correct: [0, 3], note: "Komentar iz zbirke: točno | točno" },
+        { q: "Temperatura t8/5:", options: ["mjeri se sekundama", "mjeri se °C", "veća je za manje brzine hlađenja", "veća je za veće brzine hlađenja"], correct: [0, 2] },
+        { q: "Termomeh. obrađ. Č. imaju neke prednosti u odnosu na uobič. normal. Č.. Za koje od navedenih čimb., termomeh. Č. su povoljni izbor?", options: ["zavarljivost", "toplinsko ravnanje (pri temperaturama od oko 650°C)", "granica razvlačenja", "umor"], correct: [2] },
+        { q: "Od ultračvrstih čelika izrađuje se:", options: ["dijelovi tokarilica", "dijelovi zrakoplova", "dijelovi kotlova", "dijelovi raketa"], correct: [1, 3], note: "Komentar iz zbirke: da, provjereno u literaturi koju imamo | da, provjereno u literaturi koju imamo" },
+        { q: "Najbolju Iomnu žilavost od ultračvrstih čelika imaju:", options: ["poboljšani", "TRIP", "PH austenitni", "ausforming"], correct: [1], note: "Komentar iz zbirke: Tema 2.10: visoka čvrstoća, granica razvlačenja, izvrsna lomna žilavost" },
+        { q: "Ultračvrsti čelici su:", options: ["maraging", "feritni nehrđajući", "TRIP", "kotlovski"], correct: [0, 2], note: "Komentar iz zbirke: TEMA 2.10 - str 94 - VISOKOČVRSTI ČELICI - Str 49 | TEMA 2.10 - VISOKOČVRSTI ČELICI - Str 49" },
+        { q: "Koje od navedenih metoda mogu biti učinkovite u smanjenju opasnosti pojave lamelarnog kidanja?", options: ["dozvoliti hlađenje djelomično zavarenog spoja prije njegovog dovršenja", "pravilnim oblikovanjem konstrukcije", "primijeniti spojeve s djelomičnim protaljivanjem umjesto spojeva s punim provarom", "ako su navedeni postupci nedovoljni, može se koristiti navarivanje"], correct: [1, 2], note: "Komentar iz zbirke: da, opisano na linku iznad" },
+        { q: "Vjerojatnost nastajanja hladnih pukotina se smanjuje:", options: ["predgrijavanjem (u cilju povećanja trajanja hlađenja zavarenog spoja i otklanjanja površinske vlage)", "sušenjem elektrode, zaštitnog praška", "pravilnim redoslijedom zavarivanja (smanjenje zaostalih naprezanja)", "optimalnim toplinskim inputom"], correct: [0, 1, 2, 3] },
+        { q: "SCC (Strcss Corrosion Cracking) je posljedica:", options: ["zajedničkog djelovanja mehaničkih i kemijskih čimbenika u radnom okolišu metalne konstrukcije", "isključivo djelovanje kemijskih čimbenika", "isključivo djelovanje mehaničkih čimbenika", "isključivo djelovanje zaostalih naprezanja"], correct: [0] },
+        { q: "Hladne pukotine može uzrokovati:", options: ["krhka zakaljena struktura dobivena zavarivanjem", "difuzijski vodik", "zaostala naprezanja", "vrlo visoka žilavost materijala"], correct: [0, 1, 2] },
+        { q: "Fisco test je proba sklonosti:", options: ["toplim pukotinama", "hladnim pukotinama", "koroziji", "vrućim pukotinama"], correct: [0], note: "Komentar iz zbirke: + transverestraint, verestraint test" },
+        { q: "Od HSLA čelika izrađuje se:", options: ["zakovice", "vijci", "kuglasti spremnici", "turbinski cjevovodi"], correct: [2, 3] },
+        { q: "U gradnji mostova prednosti sitnozrnatih čelika u odnosu na opće konstrukcijske čelike su:", options: ["veći modul elastičnosti", "manji modul elastičnosti", "veća granica razvlačenja", "manja masa za isto opterećenje"], correct: [2, 3] },
+        { q: "Najopasnija neželjena pojava uporabe čelika pri niskim temperaturama je:", options: ["nagli pad tvrdoće", "nagli pad žilavosti", "nagli pad Rm", "nagli pad Re"], correct: [1], note: "Komentar iz zbirke: tj niska prijelazna temperatura" },
+        { q: "Tip rešetke materijala (BCC, FCC ...):", options: ["značajno utječe na žilavost pri niskim temperaturama", "utječe, ali neznatno", "uopće ne utječe na žilavost pri niskim temperaturama", "utječe, ali samo u intervalu od 0°C do -20°C"], correct: [0], note: "Komentar iz zbirke: Metals with a face centred cubic (fcc) crystal structure do not undergo the transition and retain their ductility at low temperature. This is because fcc metals have a large number of slip systems in their crystal structure whi…" },
+        { q: "Koji elementi pridonose povećanju J-faktora?", options: ["Mn", "As", "P", "S"], correct: [0, 2], note: "Komentar iz zbirke: Možda još i Si, Sn" },
+        { q: "Pokazatelj otpornosti na puzanje je (su):", options: ["udarni rad loma", "granica puzanja", "dinamička izdržljivost", "statička izdržljivost"], correct: [1, 3], note: "Komentar iz zbirke: ne, ovo je charpy-žilavost" },
+        { q: "Visoke temperature za čelike su:", options: ["preko 200°C", "preko 250°C", "preko 300°C", "preko 450°C"], correct: [3], note: "Komentar iz zbirke: Da??, Musa: T ≥ 0.3 Tt su temperatre kriticne za pojavu puzanja" },
+        { q: "Grubozrnata struktura povoljna je kod:", options: ["puzanja", "umora", "korozije", "trošenja"], correct: [0], note: "Komentar iz zbirke: da, za razliku od sitnog zrna koje je poželjno kod minus temperatura" },
+        { q: "Koji zahvati sprečavaju pojavu interkristalne korozije pri zavarivanju CrNi čelika", options: ["naknadna normalizacija", "kemijsko vezanje ugljika u oblik vrlo otpornih karbida dodavanjem titana, niobija ili tantala", "smanjenje sadržaja ugljika na manje od 0,5% ugljika", "austenitizacija zavarenih sklopova na temperaturi 1050 do 1080 °C i hlađenja u vodi"], correct: [1] },
+        { q: "Elektrokemijska korozija je korozija u:", options: ["elektrolitima", "neelektrolitima", "vrućim plinovima", "vodi"], correct: [0, 3], note: "Komentar iz zbirke: Da, Juraga predavanja | Da, Juraga predavanja" },
+        { q: "Točkasta korozija:", options: ["je opasnija o opće korozije, jer je korozijski proces teže kontrolirati", "manje je opasna od opće korozije, jer dolazi samo do mjestimične korozije", "se javlja samo kod Al legura", "se naziva još i ,,pitting“"], correct: [0, 3] },
+        { q: "Korozija se sprečava:", options: ["racionalnim izborom konstrukcijskog materijala", "zaštitnim prevlačenjem (metalnih prevlaka, anorganskih nemetalnih prevlaka, organskih prevlaka)", "konstrukcijsko tehnološkim mjerama", "smanjenjem agresivnosti medija"], correct: [0, 1, 2, 3] },
+        { q: "Pri zavarivanju čisto austenitnih vatrootpornih čelika, treba primijeniti slijedeća pravila:", options: ["zavarivanje treba provesti uz mali unos topline, tj. tzv. ,,vrući“ postupci se trebaju izbjegavati", "ploče koje zavarujemo trebaju biti predgrijane na temperaturu 300 do 450°C ovisno o njihovoj debljini", "parametri zavarivanja (unos topline) trebaju biti propisani na temelju stvarnog Cekv", "u cilju izbjegavanja naprezanja zavara, potrebno je primijeniti napetosno odžarivanje"], correct: [0] },
+        { q: "Koji je od korozijski postojanih čelika nemagnetičan:", options: ["austenitni", "feritni", "duplex", "martenzitni"], correct: [0], note: "Komentar iz zbirke: KOJI, znači jedan a znam da austenitni jest nemagn. tako da, ova tri jesu magnet." },
+        { q: "Zone utjecaja topline i kod grubozrnatih i finozrnatih čelika su slične u kojem pogledu?", options: ["u području visokih temperatura neposredno uz liniju staljivanja zrna su pogrubljena i približno jednake veličine", "promjene u vlačnoj čvrstoći su približno jednake", "relativno povećanje tvrdoće čelika približno jednakog sastava je praktično jednako", "obje zone pokazuju smanjenje žilavosti od oko 11% u usporedbi s izvornim stanjem osnovnog materijala"], correct: [0] },
+        { q: "Austenitni nehrđajući čelici između ostalog imaju sljedeća svojstva:", options: ["niske vrijednosti čvrstoće, a izrazito visoke žilavosti (KV)", "dobra svojstva čvrstoće, a slabu žilavost", "niske vrijednosti čvrstoće i slabu žilavost", "dobra svojstva čvrstoće i dobru žilavost"], correct: [0] },
+        { q: "Feritizacija je pojava karakteristična za zavarivanje:", options: ["austenitnih čelika", "viskoaustenitnih čelika", "martenzitnih čelika", "duplex čelika"], correct: [3], note: "Komentar iz zbirke: Da, 19.10. Juraga - Cr-Ni čelici, HDTZ 2019 - Str 34" },
+        { q: "Nužni uvjet korozijske postojanosti „min 12% Cr u Fe masi“ vrijedi za:", options: ["opću postojanost", "postojanost na napetosnu koroziju", "postojanost na jamičastu koroziju", "postojanost na selektivnu koroziju"], correct: [0], note: "Komentar iz zbirke: Naravno" },
+        { q: "Feritni korozijski postojani čelici u prednosti su prema austenitnim:", options: ["po otpornosti na interkristalnu koroziju", "po otpornosti na reducirajuće kemikalije", "po otpornosti na plinove sa viskoim sadržajem S", "po cijeni"], correct: [3] },
+        { q: "Abrazija se pojavljuje:", options: ["u kliznom kontaktu s mineralima", "u kotrljajućem kontaktu", "pri kavitaciji", "pri eroziji česticama"], correct: [0] },
+        { q: "Adhezija pretežno nastaje kod:", options: ["klizanja", "kotrljanja", "erozije česticama", "kavitacije"], correct: [0] },
+        { q: "Koje su tvrdnje točne kada se razmatra platiranje:", options: ["u usporedbi s uobičajenim postupcima zavarivanja, kod navarivanja se očekuje manje miješanje", "nema razlike između EPP i EPT navarivanja trakastim elektrodama, praško vi za ove postupke mogu se međusobno zamjeniti", "u cilju izbjegavanja pukotina ili odvajanja sloja tijekom navarivanja može se primijeniti platiranje", "nije nužno primijeniti predgrijavanje pri navarivanju Co-Cr-W legurama"], correct: [0, 2] },
+        { q: "Zaštita površine od trošenja provodi se:", options: ["navarivanjem", "pocinčavanjem", "katodnom zaštitom", "naštrcavanjem"], correct: [0, 3], note: "Komentar iz zbirke: da | ovo je AKZ | ovo je AKZ | da" },
+        { q: "Modificiranje i prevlačenje površine može se provesti:", options: ["mehaničkim procesima", "toplinskim procesima", "kemijskim i elektrokemijskim procesima", "kombinacijom dva ili više gore navedenih procesa"], correct: [0, 1] },
+        { q: "Koje pojave treba uzeti u obzir kada se zavaruju čelici otporni na visoke temperature?", options: ["opasnost od zakaljivanja", "opasnost od pregrijavanja", "gubitak žilavosti", "opasnost od vrućih pukotina"], correct: [0, 1] },
+        { q: "Superlegure su materijali:", options: ["za jako niske temperature", "za visoke temperature", "na bazi bakra", "na bazi Ni ili Co"], correct: [1, 3], note: "Komentar iz zbirke: da, provjereno | da, provjereno" },
+        { q: "Čekićanje se rabi kod zavarivanja:", options: ["sivog lijeva", "mikrolegiranih čelika", "HSLA čelika", "pripoja"], correct: [0], note: "Komentar iz zbirke: da, vidio na YouTube" },
+        { q: "Koju obradu treba primijeniti pri zavarivanju legure Cu-2% Be u cilju postizanja najveće čvrstoće:", options: ["rastopno odžariti i zatim provesti starenje", "samo rastopno odžariti", "provesti odžarivanje u cilju popuštanja napetosti pri 625°C", "uporabiti u zavarenom stanju bez obrade"], correct: [0], note: "Komentar iz zbirke: Da, s viber grupe nikola" },
+        { q: "Cu i Cu legure imaju slijedeća svojstva:", options: ["vrlo dobra električna vodljivost", "loša toplinska vodljivost", "vrlo dobra korozijska postojanost", "vrlo dobra toplinska vodljivost"], correct: [0, 2, 3] },
+        { q: "Bronca je legura:", options: ["Cu-Zn", "Cu-Sn", "Cu-Al", "Cu-Zn-Sn-Pb"], correct: [1, 2], note: "Komentar iz zbirke: Čista bronca | Da, postoji" },
+        { q: "Za Cu-Ni legure vrijedi:", options: ["velika sklonost otapanja vodika u Cu i Ni stvara teškoće pri zavarivanju", "Cu i Ni imaju oba FCC rešetku sličnih parametara i gustoće", "Cu i Ni imaju oba BCC rešetku sličnih parametara i gustoće", "posebno su otporne na koroziju u svim vodenim otopinama"], correct: [0, 1, 3], note: "Komentar iz zbirke: Da, spominje se na netu a ako je topivost prisutna, radit ce sigurno probleme pri zavarivanju | Da, Wikipedia | Da, Wikipedia" },
+        { q: "Zakaljive Ni legure se zavaruju na slijedeći način:", options: ["zavarivanje nakon zakaljivanja (650°C / peć) primjenjujući dodatni materijal istog sastava", "zavarivanje nakon rastopnog žarenja legure, primjenjujući dodatni materijal istog sastava, ali bez elemenata koji potiču zakaljivanje (Ti, Al)", "nakon stabilizacijskog odžarivanja (750-820°C/ peć)", "zavariti u nezakaljenom stanju primjenjujući istovrsni dodatni materijal i zatim zakaliti"], correct: [2], note: "Komentar iz zbirke: Tema 2.19 str 25" },
+        { q: "Zaokružiti točnu(e) tvrdnju(e):", options: ["Ni-legure posjeduju izuzetnu korozijsku postojanost", "Ni-legure nisu zakaljivi materijali", "Ni-legure se mogu zavarivati TIG, MIG, REL, EPP, i EO postupkom", "Ni-legure su zakaljivi materijali"], correct: [0, 1, 2, 3], note: "Komentar iz zbirke: file:///C:/Users/Vedran/Downloads/jelic_nikola_fsb_2019_diplo_sveuc.pdf | Legure koje sadrže više od 60% Ni nisu uopće zakaljive, | jesu, vidi pitanje iznad kako glasi" },
+        { q: "Inconel je Ni legura slijedećeg sastava:", options: ["67% Ni, 30% Cu, 1,5% Fe, 1% Mn", "80% Ni, 15% Cr, 5% Fe", "90% Ni, 5%Cr, 5% Fe", "67% Ni, 3% C, 20% Fe, 10% Cr"], correct: [1] },
+        { q: "Zaokružiti točnu(e) tvrdnju(e):", options: ["sve vrste Ni-legura su zavarljive", "zavarljive su sve vrste Ni-legura osim Ni/Zn legure", "vruće pukotine tipična su pojava kod zavarivanja Ni-legura", "poroznost je tipična greška kod zavarivanja Ni-legura"], correct: [1, 3] },
+        { q: "Koje od navedenih metoda su korisne u izbjegavanju poroziteta pri elektrolučnom zavarivanju aluminija:", options: ["održavanje odgovarajuće međuslojne temperature", "uklanjanje nečistoća s rubova metala koji se zavaruje", "u slučaju TIG zavarivanja primijeniti plinsku leću", "primijeniti zaštitni plin čije je rosište niže od -60°C"], correct: [1] },
+        { q: "Kvalitetni postupci zavarivanja aluminijskih legura su:", options: ["plinsko zavarivanje", "MAG zavarivanje", "MIG zavarivanje", "TIG zavarivanje"], correct: [2, 3] },
+        { q: "AI-Mg-5 legura je:", options: ["toplinski obradiva", "toplinski neobradiva", "prikladna za očvršćivanje hladnom deformacijom", "prikladna za lijevanje"], correct: [1, 2] },
+        { q: "Karakteristične greške u zavarenim spojevima aluminijskih legura su", options: ["pore", "naljepljivanje", "pukotine izazvane vodikom", "uključci oksida"], correct: [0, 1, 2, 3] },
+        { q: "Aluminijske legure mogu se rezati:", options: ["plinskim plamenom", "plazmom", "ugljenom elektrodom i stlačenim zrakom", "laserom"], correct: [1, 3] },
+        { q: "Koje vrste titanskih legura se općenito smatraju nezavarljivim?", options: ["komercijalno čisti titan", "alfa- legure", "alfa-beta legure", "beta- legure"], correct: [3], note: "Komentar iz zbirke: može se zavarivati | ide jako dobro, HCP | ide ako nema previše Beta legure | Da, s Bauerovih predavanja" },
+        { q: "Titan se uobičajno upotrebljava:", options: ["u svemirskoj tehnici", "pri izradi automobilskih karoserija", "izradi ispušnih topova (,,auspuha“) za super sportske motocikle", "u izradi bolida F1"], correct: [0, 2, 3], note: "Komentar iz zbirke: Akrapovič | Da" },
+        { q: "Svojstva zavarenog spoja između ugljičnog i nehrđajučeg čelika temeljno ovise o:", options: ["svojstvima osnovnog materijala", "količini ugljika u osnovnom materijalu", "o primijenjenom dodatnom materijalu", "o protaljivanju i stupnju miješanja"], correct: [2, 3] },
+        { q: "Schaefflerov dijagram se uspješno može koristiti kod:", options: ["grafičkog određivanja temperature predgrijavanja u cilju izbjegavanja hladnih pukotina", "zavarivanja raznoronih materijala (čelika)", "procjene naknadne toplinske obrade poslije zavarivanja", "određivanja Cekv"], correct: [1] },
+        { q: "Ukoliko je potrebno zavarivati niskolegirani čelik (najčešće potrebno predgrijavanje) i visokolegirani čelik austenitnog tipa (zabranjeno predgrijavanje) zavarivanje:", options: ["uopće nije moguće izvoditi, jer se najednom od čelika mogu pojaviti hladne pukotine, a na drugom može doći do izlučivanja Cr karbida po granicama zrna", "se može izvoditi oblaganjem ivica žlijeba (uz predgrijavanje) niskolegiranog čelika elektrodom austenitnog tipa (npr. Cr-Ni 24/12), nakon čega se provodi priprema žlijeba i zavarivanje bez predgrijavanja sa visokolegiranim austenitnim čelikom", "se izvodi tako da u zavarenom spoju bude obavezno 5-12% delta ferita", "moguće je izvesti, ali samo sa MIG postupkom zavarivanja uz mali dodatak kisika zaštitnom plimnu"], correct: [1], note: "Komentar iz zbirke: Da, s predavanja a i inače tako radimo" },
+        { q: "Udjeli (postotci) mješanja pojedinih osnovnih i dodatnih materijala kod primjene Schaefflerovog dijagrama se određuju:", options: ["mjerenjem površine (planimetriranjem) 3 ili više metalografskih makro uzoraka zavarenih spojeva", "procjenjuje se na osnovu iskustva specijaliste zavarivanja", "udijeli (postotci) miješanja nisu bitni za korištenje Schaefflerovog dijagrama", "TTT-dij agrarnom"], correct: [0] },
+        { q: "Jedan od dijagrama za određivanje temperature predgrijavanja, granične debljine materijala, toplinskog inputa i trajanja hlađenja od 800 do 500 °C je:", options: ["Dijagram Bragarda", "TTT anizotermički dijagram", "TTT izotermički dijagram", "Dijagram dilacijskih promjena pri zavarivanju", "Smithov dijagram", "Heighov dijagram"], correct: [0], note: "Komentar iz zbirke: Veza temperature predgrijavanja i toplinskog inputa za dvodimenzijsko i trodimenzijsko vođenje topline može se sagledati preko dijagrama Bragarda." },
+        { q: "Simulacija toplinskog ciklusa zavarivanja može se izvoditi na :", options: ["Thermorestor uređaju", "Gleeble uređaju", "Charpijevom batu", "Drop-Weight-Test uređaju", "Smitweld uređaju"], correct: [0, 1, 4], note: "Komentar iz zbirke: Simulacija toplinskog ciklusa provodi se u laboratorijskim uvjetima na simulatoru toplinskog ciklusa (Smitweld, Gleeble, Thermorestor, ...)." },
+        { q: "U zoni-području rekristalizacije zavarenog spoja u zoni utjecaja :", options: ["ne dolazi do strukturnih transformacija, već samo do porasta zrna i usitnjavanja izazvanog '\"međusobnim drobljenjem zrna kod materijala koji su prethodno pretrpjeli plastičnu deformaciju", "dolazi do strukturnih transformacija", "dolazi do pogrubljenja kristalnog zrna"], correct: [0], note: "Komentar iz zbirke: može doći ako je hladno valjan" },
+        { q: "Koje su od sljedećih tvrdnji istinite:", options: ["viša vrijednost ekvivalenta ugljika znači veću sklonost zakaljivanju i povećanju čvrstoće", "viša vrijednost ekvivalenta ugljika znači bolju zavarljivost", "viša vrijednost ekvivalenta ugljika znači veću sklonost zakaljivanju i višu žilavost", "viša vrijednost ekvivalenta ugljika znači bolju korozijsku postojanost zavarenog spoja", "viša vrijednost ekvivalenta ugljika znači lošiju zavarljivost"], correct: [0, 4] },
+        { q: "Zavarljivost, najjednostavnije predstavlja sposobnost spajanja materijala. U tom se smislu razlikuju operativna, metalurška ili lokalna i konstrukcijska ili globalna zavarljivost. Primjena predgrijavanja, dogrijavanja, \"oblaganja ivica žlijeba za zavarivanje\" razmatra se u okviru;", options: ["metalurške ili lokalna zavarljivosti", "konstrukcijske ili globalne zavarljivosti.", "operativne zavarljivosti"], correct: [2] },
+        { q: "Procjena fizikalno-kemijskih transformacija pod utjecajem toplinskog ciklusa zavaivanja razmatra se u okviru:", options: ["metalurške ili lokalna zavarljivosti", "operativne zavarljivosti", "konstrukcijske ili globalne zavarljivosti"], correct: [0] },
+        { q: "Opća procjena ponašanja zavarenog spoja na zavarenoj konstrukciji (npr. mogućnost izvođenja zavarenog spoja, pristupačnost, zarezna djelovanja i dr.) razmatra se u okviru:", options: ["konstrukcijske ili globalne zavarljivosti.", "operativne zavarljivosti", "metalurške ili lokalna zavarljivosti"], correct: [0] },
+        { q: "Rast kristalnog zrna u zavarenom spoju posljedica je:", options: ["nedovoljnog toplinskog inputa u zavarenom spoju", "loše naknadne toplinske obrade u zavarenom spoju", "predugog zadržavanja područja uz \"liniju staljivanja\" sa strane zone utjecaja topline na visokim temperaturama (iznad temperature normalizacijskog žarenja), koje se može javiti kao posljedica velikog unošenja topline pri zavarivanju i zavarivanju u više prolaza i slojeva."], correct: [2] },
+        { q: "Veća brzina hlađenja u zavarenom spoju je posljedica:", options: ["manjeg toplinskog inputa", "većeg toplinskog inputa", "više temperature predgrijavanja", "manje temperature predgrijavanja", "veće debljine limova koji se zavaraju", "manje debljine limova koji se zavaraju"], correct: [0, 3, 4] },
+        { q: "Analitička formula za dvodimenzijsko vođenje topline pri zavarivanju (Rykalin, Rosental) dobiju se kada", options: ["pokretni točkasti izvor topline djeluje na polubeskonačno tijelo (debeli lim)", "brzopokretni točksti izvor topline (v → ∞) djeluje na debeli lim", "pokretni linijski izvor topline djeluje na lijelo debljine δ (tanki lim)"], correct: [2] },
+        { q: "Analitička formula za trodimenzijsko vođenje topline pri zavarivanju (Rykalin, Rosental) dobiju se kada", options: ["pokretni točkasti izvor topline djeluje na polubeskonačno tijelo (debeli lim)", "pokretni linijski izvor topline djeluje na tijelo debljine δ (tanki lim)", "brzopokretni točksti izvor topline (v → ∞) djeluje na debeli lim"], correct: [0, 2] },
+        { q: "Pokretni točkasti izvor topline koji djeluje na limu debljine δ predstavlja", options: ["pojednostavljeno trodimenzijsko vođenje topline", "pojednostavljeno dvodimenzijsko vođenje topline", "tzv. model \"ravnog sloja\" (2,5 D-model), tj. model za slučajeve između 2 i 3 dimenzijskog vođenja topline"], correct: [0] },
+        { q: "Kada je stvarna debljina ploče koja se zavaruje veća od granične debljine (prema Rykalinovoj formuli za graničnu debljinu između 2 i 3 dimenzijskog vođenja topline pri zavarivanju) primjenjuje se:", options: ["trodimenzijski model vođenja topline", "dvodimenzijski model vođenja topline", "granična debljina nema veze sa izborom modela vođenja topline pri zavarivanju"], correct: [1] },
+        { q: "Zaokružite ispravne tvrdnje za t8/5:", options: ["t8/5 upravo je proporcionalno sa q/v", "t8/5 upravo je proporcionalno sa δ", "t8/5 obrnuto je proporcionalno sa δ", "t8/5 obrnuto je proporcionalno sa v"], correct: [0, 1, 3], note: "Komentar iz zbirke: da, ovo je toplinski input | što je deblji lim, sporije se hladi od 800 do 500 ºC | što brže zavaruješ prije ćeš proći kroz t8/5" },
+        { q: "Ako je temperatura predgrijavanja viša, tada će trajanje hlađenja od 800 do 500 °C biti (t8/5):", options: ["duže", "Kraće", "ovisi o kojem se modelu vođenja topline pri zavarivanju radi"], correct: [0] },
+        { q: "Temperatura predgrijavanja ima jači utjecaj na trajanje hlađenja od 800 do 500 °C (t8/5) kod:", options: ["2-dimenzijskog vođenja topline", "3-dimenzijskog modela vođenja topline", "jednako djeluje i kod 2- i 3- dimenzijskog vođenja topline"], correct: [0] },
+        { q: "Brzina hlađenja zavarenog spoja je veća što je", options: ["unesena toplina manja", "unesena toplina veća", "debljina ploče koja se zavaruje veća", "debljina ploče koja se zavaruje manja"], correct: [0, 2], note: "Komentar iz zbirke: najbolje se vidi kad se hefta | debela ploča odvuče svu toplinu" },
+        { q: "Sto je prijelazna temperatura (iz žilavog u krhko stanje) kod općekonstrukcijskog čelika niža, to je:", options: ["zavareni spoj u eksploataciji manje pouzdan s obzirom na krhki lom", "zavareni spoj u eksploataciji pouzdaniji s obzirom na opasnost od krhkog loma", "veća je mogućnost krhkog loma u eksploataciji"], correct: [1] },
+        { q: "Kod većine materijala koji se zavaruju najviše poteškoća može se očekivati u", options: ["ZUT-u u području normalizacije", "ZUT-u u području starenja i plavog loma", "u zoni taljenja, odnosno metalu zavara", "ZUT-u u području pogrubljenja zrna, uz \"liniju staljivanja\", odnosno \"područje staljivanja\""], correct: [3] },
+        { q: "\"Linija staljivanja\" (fusion line) predstavlja:", options: ["granicu između zone utjecaja topline i osnovnog materijala", "granicu između osnovnog materijala i zavarenog spoja", "granicu između zone utjecaja topline i zone taljenja (metala zavara)"], correct: [2] },
+        { q: "Stacionarno, odnosno kvazistacionarno temperaturne polje pri zavarivanju javlja se", options: ["na dovoljnoj udaljenosti od mjesta početka i kraja zavara, kada je \"uspostavljena ravnoteža\" između količine odvedene i dovedene topline, uz uvjet q/v=konstantno", "na početku i na kraju zavara", "zbog postavljanja ulazno-izlaznih ili nastavnih pločica"], correct: [0, 2], note: "Komentar iz zbirke: q/v... Toplinski input" },
+        { q: "Nestacionarno temperaturno polje pri zavarivanju se javlja", options: ["na početku i na kraju zavara kada nisu postavljene ili nije moguće postaviti ulazno-izlazne ili nastavne pločice", "na dovoljnoj udaljenosti od mjesta početka i kraja zavara, kada je \"uspostavljena ravnoteža\" između količine odvedene i dovedene topline, uz uvjet q/v=konstantno", "pri zavarivanju ka rubu ili od ruba ploče"], correct: [0, 2] },
+        { q: "Grafit ima:", options: ["slojastu strukturu", "metalno dipolne veze", "dipolno ionske veze", "kovalentno dipolne veze"], correct: [0, 3], note: "Komentar iz zbirke: Tema 2.3 str 8 | Tema 2.3 str 8" },
+        { q: "Widmanstaettenova struktura ima:", options: ["visoku istezljivost", "nisku istezljivost", "zaobljena zrna", "iglicasta zrna"], correct: [1, 3] },
+        { q: "Grafit se ne pojavljuje u:", options: ["metastabilno skrucenim legurama", "stabilno skrucenim legurama", "čeliku", "sivom lijevu"], correct: [0], note: "Komentar iz zbirke: Tema 2.3 str 7: Ukoliko je kristalizacija stabilna, odnosno ohlađivanje ekstremno sporo ugljik se osim u kristalima mješancima javlja u obliku grafita Cg, sa 100% C | Tema 2.3 str 7: Ukoliko je kristalizacija stabilna, odnosno…" },
+        { q: "Prilikom hlađenja γ-Fe prelazi u α-Fe pri", options: ["770 ºC", "898 ºC", "911 ºC", "1392 ºC"], correct: [1], note: "Komentar iz zbirke: ne | Da, provjereno | na 911 je prilikom grijanja | ne" },
+        { q: "Na što najznačajnije utječe brzina hlađenja", options: ["Na ponašanje prilikom pretvorbe iz tekuće u krutninu", "Na pogrubljenje zrna", "Na naprezanja", "Na deformaciju"], correct: [1], note: "Komentar iz zbirke: da, | manje značajno no da | manje značajno no da" },
+        { q: "Prema Uptonovom dijagramu, koji čelici na sobnoj temperaturi sadrže Az (zaostali austenit)", options: ["s 0.3 %C", "s 0.5 %C", "s 0.7 %C", "s 0.9 %C"], correct: [2, 3], note: "Komentar iz zbirke: Inace, do 0,6% C nema Az pri 20 ºC | ne | ne | da | da" },
+        { q: "Metalurgija čelika započinje proizvodnjom sirovog željeza uglavnom u visokim pećima od sirovina:", options: ["željezne rude", "metalurškog koksa", "vapna koje je sirovinski dodatak", "sivog sirovog željeza"], correct: [0, 1, 2] },
+        { q: "Zone utjecaja topline kod grubozrnatih i finozrnatih čelika su slične u kojem pogledu", options: ["U području visokih temperatura neposredno uz liniju staljivanja, zrna su pogrubljena i približno jednake veličine", "promjene u vlačnoj čvrstoći su približno jednake", "relativno povećanje tvrdoće čelika približno jednakog sastava je praktički jednako", "obje zone pokazuju smanjenje žilavosti od okok 11% u usporedbi s osnovnim stanjem OM"], correct: [0] },
+        { q: "Miješanje osnovnog i dodatnog materijala (dilucija) definira se kao(A... Udio DM, B... Udio OM):", options: ["(A+B)/A x 100", "A/(A+B) x 100", "B/(A+B) x 100", "(A+B)/B x 100"], correct: [2] },
+        { q: "Atomarni vodik ostaje zarobljen u zavaru nakon što temperatura zavara pri hlađenju padne ispod:", options: ["723 ºC", "910 ºC", "200 ºC", "20 ºC"], correct: [2] },
+        { q: "Ekvivalent ugljika Cekv je značajan za procjenu zavarljivosti čelika. Što se s nim može procjenjivati:", options: ["Sklonost strukture ZT prema zakaljivanju", "Sklonost strukture ZUT prema hladnim pukotinama", "Sklonost prema kristalizacijskim i podsolidusnim/likvacijskim toplim pukotinama", "Sklonost čelika prema zakaljivanju"], correct: [1, 3] },
+        { q: "Koja od slijedećih izraza formula za ekvivalent ugljika prema IIW/MIZ:", options: ["one", "two", "three", "C + Mn/6 + (Cr+Mo+V)/5 + (Ni+Cu)/15"], correct: [3] },
+        { q: "Kod zavarivanja ugljičnih i ugljično-manganskih općih konstrukcijskih čelika najviše vrijednosti tvrdoće se očekuju u", options: ["metalu zavara", "zoni djelomične prekristalizacije", "zoni pogrubljenja zrna u ZUT-u tik uz liniju staljivanja", "zoni normalizacije"], correct: [2] },
+        { q: "Prijelazna temperatura se snizuje:", options: ["porastom sadržaja C", "porastom sadržaja Mn", "porastom sadržaja Cr", "porastom sadržaja Ni"], correct: [1, 3], note: "Komentar iz zbirke: Provjereno | Provjereno" },
+        { q: "Poboljšani sitnozrnati čelici spadaju u:", options: ["opće konstukcijske čelike", "čelike povišene čvrstoće", "čelike visoke čvrstoće", "ultračvrste čelike"], correct: [2] },
+        { q: "Normalizirani sitnozrnati čelici u strukturi sadrže:", options: ["Ferit", "Perlit", "Bainit", "Martenzit"], correct: [0, 1], note: "Komentar iz zbirke: Tema 2.10 str 28 | Tema 2.10 str 28 | ne | ne" },
+        { q: "Kod termomehaničke obrade deformacija se odvija", options: ["prije pretvorbe strukturne faze", "za vrijeme strukturne pretvorbe", "poslije strukturne pretvorbe", "bez pretvorbi strukturnih faza"], correct: [0, 1], note: "Komentar iz zbirke: Da, Tema 2.10 str 83 | Da, Tema 2.10 str 83 | Ne | Ne" },
+        { q: "Postupak perliforming primjenjuje se za", options: ["nelegirane čelike", "nelegirane čelike sa sadržajem ugljika većim od 3%", "visokolegirane čelike", "superlegirane čelike"], correct: [0], note: "Komentar iz zbirke: Da, Tema 2.10 str 95 | Ne? Kakav je to čelik s 3% C | Ne | Ne" },
+        { q: "Martenzitni nerđajući čelici", options: ["9-10%Cr i 2-3%Ni", "14-17%Cr i 4-6%Ni", "10-12%Cr i 10-12%Ni", "12-13%Cr i 8-9%Ni"], correct: [1] },
+        { q: "Grubozrnata struktura nije povoljna kod", options: ["puzanja", "umora", "korozije", "trošenja"], correct: [1, 2, 3], note: "Komentar iz zbirke: puzanje voli grubo zrno tj takvi su čelici za rad na visokim temperaturama | ima smisla jer se kotrljanjem nekog tijela po grubom zrnu, lakše ispod površine rasklima grubo nego sitno | da, diplomski" },
+        { q: "Pri uporabi čelika u tehnikama dubokog hlađenja (-85 ºC do -196 ºC) mogu/može se upotrijebiti:", options: ["Č0563", "čelici legirani s 5 do 9% Ni", "austenitni čelici", "ST 355 J2G3"], correct: [1, 2], note: "Komentar iz zbirke: da, legure nikla za minus temperature" },
+        { q: "Čelici koji se koriste za niske temperature su:", options: ["niskolegirani Cr-Mo čelici", "nesmireni", "austenitni čelici ili čelici legirani s Ni", "niskolegirani C-Mn čelici"], correct: [2], note: "Komentar iz zbirke: Da, s 9% Ni je odlican kompromis meh svojstava I cijene na niskim temperaturama" },
+        { q: "Za koju vrstu korozije, proces ovisi isključivo o vrsti materijala i okolišu", options: ["opća korozija (hrđanje)", "korozija u procjepu potaknuta naprezanjem", "korozija u procjepu potaknuta lužnatim medijima", "korozijski umor"], correct: [0] },
+        { q: "Hrđanje ugljičnog čelika u vodi uzrokuje", options: ["voda s otopljenim kisikom", "sama voda", "HCl otopljen u vodi", "NaOH otopljen u vodi"], correct: [0, 1, 2, 3], note: "Komentar iz zbirke: Mislim da da, Klor, zato sve okolo na zatvorenim bazenima za plivanje korodira | da, Maja iz Alar knjige" },
+        { q: "Na mehanička svojstva pri povišenim temperaturama povoljno utječe", options: ["feritna struktura", "austenitna sutruktura", "sitnije zrno", "krupnije zrno"], correct: [3], note: "Komentar iz zbirke: Austenitni vatro otporni čelici mogu se dobro hladno obrađivati ( oblikovati ). Karakterizira ih grubo zrnata struktura" },
+        { q: "Super 12% Cr čelici toplinski se obrađuju", options: ["normalizacijom", "poboljšavanjem", "žarenjem", "sferodizacijom"], correct: [1], note: "Komentar iz zbirke: ://repozitorij.fsb.hr/6277/1/Pongrac_2016_zavrsni_preddiplomski.pdf: Toplinska obrada ovih čelika sastoji se od kaljenja i visokotemp. popušt. (poboljšavanja)" },
+        { q: "Mehanička svojstva superlegura postižu se precipitacijom", options: ["martenzita", "bainita", "karbida", "intermetalnih spojeva"], correct: [2, 3], note: "Komentar iz zbirke: ??? Vrijedi za Maraging: Starenjem u Ni‐martenzitu dolazi do precipitacije fino dispergiranih intermetalnih spojeva | ??? The Ni based superalloys develop high temperature strength through secondary phase precipitates such as g…" },
+        { q: "Najlošiju kompatibilnost na osnovi kristalne strukture ima tribološki par s rešetkama:", options: ["BCC/BCC", "FCC/FCC", "BCC/FCC", "HCP/HCP najbolju kompatibilnost"], correct: [1], note: "Komentar iz zbirke: Najbolji par" },
+        { q: "Kakav je odnos tvrdoća kod nulte abrazije", options: ["tvrdoća abraziva je veća od tvrdoće površine", "tvrdoća abraziva je manja od tvrdoće površine", "tvrdoća abraziva i tvrdoća površine su jednaki", "tvrdoća abraziva je veća od tvrdoće jedne faze površine"], correct: [1] },
+        { q: "Modificiranje i prevlačenje površina može se provesti", options: ["mehaničkim procesima", "toplinskim procesima", "kemijskim i elektrokemijskim procesima", "kombinacijom dva i više gore navedenih procesa"], correct: [0, 1, 2, 3] },
+        { q: "Sivi lijev ima slijedeća svojstva", options: ["izvrsno prigušuje vibracije", "dobru vlačnu čvrstoću", "dobru tlačnu čvrstoću", "dobru dinamičku izdržljivost"], correct: [0, 2] },
+        { q: "Nodularni lijev u odnosu na sivi lijev ima bolja svojstva", options: ["prigušivanje vibracija", "vlačnu čvrstoću", "tlačnu čvrstoču", "dinamičku izdržljivost"], correct: [1, 2, 3] },
+        { q: "Perlitni u odnosu prema feritnom nodularnom lijevu ima", options: ["manju čvrstoću", "veću čvrstoću", "bolju zakaljivost", "manju duktilnost"], correct: [1, 3] },
+        { q: "Toplinskom obradom nije moguće očvrsnuti", options: ["mjedi", "aluminijevu broncu", "berilijevu broncu", "Cu-Ni legure"], correct: [0, 1], note: "Komentar iz zbirke: može očvrsnuti | može očvrsnuti | može očvrsnuti | ne može" },
+        { q: "Najbolje su hladno deformabilne:", options: ["monofazne Cu legure", "dvofazne legure s intermetalnim spojem", "Cu-Ni legure", "dvofazne legure"], correct: [0], note: "Komentar iz zbirke: Našao Matija u knjizi: jednofazne hladno, dvofazne toplo su obradljive | toplo | toplo | toplo" },
+        { q: "Poteškoća povezana sa zavarivanjem Ni-legura je uglavnom", options: ["zakaljivost", "smanjenje žilavosti", "hladne pukotine", "poroznost"], correct: [3], note: "Komentar iz zbirke: Ni legure nisu zakaljive | Ne, veliki problem su tople pukotine kod Nikla | Tema 2.19 str 28 kaže da je čistoća ključni čimbenik---pore, 32: pore" },
+        { q: "Nakon zavarivanja aluminijskih legura, korozijske pojave posebno su prisutne", options: ["u osnovnom materijalu", "u metalu zavara", "u ZUT-u", "u ZUT-u i osnovnom materijalu"], correct: [1], note: "Komentar iz zbirke: Tema 2.20, str 155, 186" },
+        { q: "Odaberi zavarljivu Al leguru iz serije 7XXX:", options: ["7095", "7075", "7003", "7005"], correct: [2, 3], note: "Komentar iz zbirke: 7XXX alloys. This too is a family of high-strength aerospace alloys. Like the 2XXX alloys, most of them are unweldable using GTAW or GMAW because of hot-cracking and stress-corrosion concerns. The exceptions are 7003 and 7005 e…" },
+        { q: "Al-Mg-5 legura je", options: ["toplinski obradiva", "toplinski neobradiva", "prikladna za očvršćavanje hladnom deformacijom", "prikladna za lijevanje"], correct: [1, 2] },
+        { q: "Svako pa i najmanje naprezanje kojem je izloženo čvrsto tijelo izaziva njegovu deformaciju. Ta se deformacija može odvijati", options: ["elastično", "viskoelastično", "kristalno-plastično", "viskozno (staklo-plastično)"], correct: [0] },
+        { q: "Wohlerov dijagram daje podatak o dinamičkoj izdržljivosti nekog materijala za", options: ["samo jedan tip promjenjivog naprezanja", "različite tipove promjenjivog naprezanja", "samo jedan tip promjenjivog naprezanja uy granični broj ciklusa od 10³ titraja", "različite tipove promjenjivog naprezanja uy granični broj ciklusa od 10³ titraja"], correct: [0] },
+        { q: "Poluumireni odnosno umireni čelici dobivaju se:", options: ["Dodavanjem dezoksidanta (Al)", "Dodavanjem dezoksidanta (Cr)", "Dodavanjem Mn", "Dodavanjem Si"], correct: [0, 3] },
+        { q: "Linearna ovisnost između naprezanja i deformacije definirana je:", options: ["Hookeovim zakonom", "Woehlerovim dijagramom", "Smithovim dijagramom", "Schaefflerovim dijagramom"], correct: [0] },
+        { q: "Dvije metalografske faze mogu predstavljati kristalne strukture koje su", options: ["segregirane", "nekoherentne", "granice dvojčenja", "koherentne"], correct: [1, 3] },
+        { q: "Najčešće kristalne rešetke metala su", options: ["HCP", "FCC", "BCC", "Tetragonska"], correct: [0, 1, 2] },
+        { q: "Najbolju sposobnost za plastičnu deformaciju ima kristalna rešetka", options: ["HCP", "FCC", "BCC", "Tetragonska"], correct: [1], note: "Komentar iz zbirke: Da, općepoznato zbog puno kliznih ravnina koje ima FCC rešetka" },
+        { q: "Koji od navedenih elemenata potiču nastajanje austenita", options: ["Cr", "Mn", "Mo", "Ni"], correct: [1, 3], note: "Komentar iz zbirke: Alfageni/Feritotvorci: Si, Al, W, Mo, V, Cr | -austenitniGamageni: Mn, Ni, Co, Cu" },
+        { q: "Metalnu atomsku vezu karakterizira", options: ["slobodni elektroni", "dobra vodljivost topline i elektriciteta", "izolacijska svojstva", "razmjena elektrona"], correct: [0, 1], note: "Komentar iz zbirke: ne, ovo je kod izolatora | nema razmjene, slobodni elektroni plivaju u prostoru oko elektrona" },
+        { q: "Metali su kemijski elementi koji", options: ["imaju mali broj elektrona u vanjskoj ljusci (<4)", "imaju veliki broj elektrona u vanjskoj ljusci (>4)", "tvore anione", "tvore katione"], correct: [0, 3], note: "Komentar iz zbirke: da | ne, ovo je kad nemetal primi elektrone i postane - ion | da, kad metal izgubi elektrone i postane + ion" },
+        { q: "Međuatomske veze u grafitu su", options: ["kovalentne i Wan der Waalsove", "Metalne", "Ionske", "metalne i ionske"], correct: [0], note: "Komentar iz zbirke: Tema 2.3 str 8 | Ne | Ne | Ne" },
+        { q: "Pri kaljenju čelika događa se", options: ["neravnotežna pretvorba", "ravnotežna pretvorba", "potpuna difuzija", "onemogućena difuzija"], correct: [0], note: "Komentar iz zbirke: Mislim da je ovo točno jer je kaljenje brza pretvorba a takve su neravnotežne pretvorbe inače" },
+        { q: "Martenzit nastaje", options: ["na temperaturi A1", "na temperaturi A3", "Između Ms i Mf", "između likvidusa i solidusa"], correct: [2] },
+        { q: "Martenzit ima", options: ["FCC", "Prostorno centriranu tetragonalnu rešetku (BCT)", "visoku tvrdoću", "visoku žilavost"], correct: [1, 2] },
+        { q: "Kada se zavaruje S355, ubičajeno je izvesti predgrijavanje ako je", options: ["debljina materijala manja od 20mm", "debljina materijala veća od 25mm", "okolišna temperatura iznad 20 ºC", "okolišna temperatura ispod 0 ºC"], correct: [1, 3], note: "Komentar iz zbirke: Ovo je X52, na Ugljanu smo predgrijavali iznad 19mm" },
+        { q: "Zakaljivost čelika ovisi o", options: ["udjelu ugljika u čeliku", "nije bitno koliko ugljika čelik ima", "udjelu Cr i Ni u čeliku", "udjelu Mn i Si u čeliku"], correct: [0] },
+        { q: "Svrha normalizacijskog žarenja čelika je", options: ["usitnjavanje grubozrnate strukture nastale pri lijevanju, zavarivanju i toplom oblikovanju, radi postizanja više žilavosti i granice tečenja", "povećanje zrna radi više žilavosti i granice tečenja", "poboljšati rezljivost i oblikovljivost čelika", "hladno deformacijski očvrsnutom metalu vratiti deformabilnost kakvu je imao prije hladnog deformiranja"], correct: [0], note: "Komentar iz zbirke: da, vidi" },
+        { q: "Žarenje čelika za redukciju napetosti provodi se", options: ["sporim ugrijavanjem na temperature ispod temperature prekristalizacije, držanje dovoljno dugo vremena te veoma sporo hlađenje kako bi se spriječilo nastajanje toplinskih napetosti", "sporim ugrijavanjem na temperature iznad temperature prekristalizacije, držanje dovoljno dugo vremena te veoma sporo hlađenje kako bi se spriječilo nastajanje toplinskih napetosti", "brzim ugrijavanjem na 150 ºC te brzim hlađenjem", "sporim ugrijavanjem na 150 ºC te brzim hlađenjem"], correct: [0], note: "Komentar iz zbirke: ϑž = 400 – 650 ᴼC / min 2 h" },
+        { q: "Zavarivanje djeluje na čelik izazivajući", options: ["strukturne modifikacije", "promjene kemijskog sastava", "modifikacije specisičnog volumena", "promjene tvrdoće"], correct: [0, 1, 2, 3] },
+        { q: "Zona hladnog loma nalazi se", options: ["najbliže metalu zavara", "najdalje metalu zavara", "uz zonu pregrijavanja", "uz zonu rekristalizacije"], correct: [1], note: "Komentar iz zbirke: prema: 12.10. Samardzic - IWE 2.5.pdf" },
+        { q: "Nestacionarno toplinsko polje tijekom polaganja sloja od početka do kraja u usporedbi s kvazistacionarnim poljem karakterizirano je", options: ["manjim brzinama hlađenja", "većim brzinama hlađenja", "jednakim brzinama hlađenja", "ovisnošću od slučaja do slučaja"], correct: [0] },
+        { q: "Sitnozrnati čelici u odnosu na opće konstrukcijske imaju", options: ["višu granicu razvlačenja", "sitnije zrno", "veći mogul elastičnosti", "bolju lomnu žilavost"], correct: [0, 1, 3], note: "Komentar iz zbirke: ?? | Da, Tema 2.10 str 14" },
+        { q: "Prijelazna temperatura je", options: ["temperatura kod koje je udarni rad loma optimalan", "temperatura ispod koje udarni rad loma naglo pada", "karakteristična za BCC materijale", "karakteristična za FCC materijale"], correct: [1] },
+        { q: "Kada se ocjenjuju mikrolegirani čelici najvažnija svojstva koja treba uzeti u obzir su:", options: ["vlačna čvrstoća", "granica popuštanja", "prijelazna temperatura", "tvrdoća"], correct: [0], note: "Komentar iz zbirke: TEMA 2.10 - VISOKOČVRSTI ČELICI, str 20/103 | povećanje čvrstoće čelika, uz istovremenu uštedu legirajućih elemenata, ostvaruje se primjenom mikrolegiranja → postizanje visoke granice razvlačenja, zadovoljavajuće plastičnosti,…" },
+        { q: "Precipitacijski očvrstivi (PH) čelici su:", options: ["feritni", "ultračvrsti", "martenzitni", "za poboljšavanje"], correct: [1, 2], note: "Komentar iz zbirke: ULTRAČVRSTI KOROZIJSKI POSTOJANI PRECIPITACIJSKI OČVRSTIVI ČELICI (“PH – ČELICI”) | TEMA 2.10 - VISOKOČVRSTI ČELICI, str 63/103" },
+        { q: "Koja karakteristika ukazuje na pukotine uslijed ponovnog žarenja", options: ["pucanje u ZUT-u tijekom naknadne toplinske obrade zavarenog spoja", "pucanje u MZ-a tijekom naknadne toplinske obrade zavarenog spoja", "pucanje po granicama zrna", "pucanje preko granica zrna"], correct: [0], note: "Komentar iz zbirke: Cracking often occurs in the HAZ around welds in many superalloys during PWHT, which compromises the integrity of the welded material." },
+        { q: "Što je vodikom inducirana krhkost (HIC) kod HSLA čelika", options: ["H", "poseban slučaj napetosne korozije metala", "poseban slučaj unutarnjeg oštećenja metalne konstrukcije", "interkristalna korozija"], correct: [0], note: "Komentar iz zbirke: 852/1881 - osam osnovnih ok + dodatni (HIC spada pod doatne)" },
+        { q: "Što se apsorbira u metalu i uzrokuje HIC", options: ["vodikov ion H*", "molekula vodika H2", "vodikov atom H", "molekula dušuka N2"], correct: [2], note: "Komentar iz zbirke: Samo atomarni vodik može ući u metal....." },
+        { q: "Implant je proba sklonosti", options: ["toplim pukotinama", "hladnim pukotinama", "koroziji", "vrućim pukotinama"], correct: [1], note: "Komentar iz zbirke: Tekken metoda, CTS, Lehig" },
+        { q: "Označite grupu elemenata koji svi povećavaju opasnost pojave pukotina u metalu zavara uslijed naknadnog žarenja za niskolegirane Cr-Mo čelike", options: ["P, S, N, Ti", "P, Sb, Sn, As", "P, O, Cu, Al", "P, C, Nb, Ti"], correct: [0] },
+        { q: "Niskolegirani čelici mogu se primjeniti na", options: ["lopatice parnih turbina", "lopatice plinskih turbina", "raketne motore", "kotlove"], correct: [0, 1, 3] },
+        { q: "Jamičastu ili rupičastu koroziju (Pitting) nerđajućih čelika izaziva", options: ["jaka kiselost vodene otopine", "prisutnost klorida i oksidansa npr O2, Fe 3+ u vodenoj otopini", "visoka temperatura vodene otopine", "brzo relativno gibanje vodene otopine u odnosu na čelik"], correct: [1], note: "Komentar iz zbirke: kloridni ioni u vodenim otopinama su specifičan agresivni čimbenik koji često uzrokuje rupičastu (piting)" },
+        { q: "Izlučivanje Cr-karbida kod CrNi čelika je najintenzivnije pri temperaturi", options: ["100-200 ºC", "200-400 ºC", "900-1000 ºC", "400-900 ºC"], correct: [3], note: "Komentar iz zbirke: pri 450 do 850 C - prema predavanjima Juraga 17.10.2019" },
+        { q: "Koje tvrdnje su točne u pogledu trošenja abrazijom", options: ["glavni mehanizam trošenja kod toplog valjanja je abrazija", "normalno trošenje između cilindra i klipnih prstena je adhezijska abrazija", "iznos abrazije uslijed djelovanja abrazivnih čestica obično nije povezan s razinom naprezanja", "trošenje na zubima rovokopača i čekićima drobilice smatra se tipičnim abrazijskim trošenjem česticama"], correct: [3], note: "Komentar iz zbirke: ovdje je umor površine | možda čak i jest no nisa siguran | Da" },
+        { q: "Umor površine pretežno nastaje kod", options: ["klizanja", "kotrljanja", "erozije kapljicama", "kavitacije"], correct: [1] },
+        { q: "Pri zavarivanju platiranog čelika (ugljično-manganski čelik kao osnovni materijal i AISI 304 kao korozijski otporan sloj)", options: ["potrebno je primjeniti jednako predgrijavanje za osnovni materijal i korozijski otporan sloj", "prvi sloj platiranja može se izvesti s dodatnim materijalom kvalitete AISI 309", "cijeli sloj može se izvesti s dodatnim materijalom kvalitete AISI 309 ako je pristupačnost spoju otežana", "potrebno je izbjeći miješanje platiranog sloja s dodatnim materijalom kojim je zavaren osnovni materijal"], correct: [3] },
+        { q: "Zavari visoke kakvoće (bez grešaka) pri spajanju dezoksidiranog bakra mogu se postići slijedećim postupcima", options: ["mekim lemljenjem", "TIG zavarivanjem s dvostranom zaštitom", "MIG zavarivanjem s posebnim DM koji sadrži veliki postotak dezoksidirajućih elemenata", "nista od navedenog nije točno"], correct: [1], note: "Komentar iz zbirke: s formiranjem" },
+        { q: "Mjed je legura", options: ["Cu-Zn", "Cu-Sn", "Cu-Al", "Cu-Zn-Sn-Pb"], correct: [0], note: "Komentar iz zbirke: bronca | bronca aluminijska" },
+        { q: "Hladnom deformacijom", options: ["nije moguće očvrsnuti Cu legure", "moguće je očvrsnuti Cu legure", "moguće je očvrsnuti Cu legure jer se javlja precipitacijsko očvršćavanje", "nije moguće očvrsnuti Cu legure jer se ne javlja precipitacijsko očvršćavanje"], correct: [1], note: "Komentar iz zbirke: naravno, uzmi bakrenu žicu, napravi S i vrti krajeve u suprotnim smjeroima i postat će čvršća od čelika" },
+        { q: "Monel je legura Ni slijedećeg sastava", options: ["67% Ni, 30% Cu, 1.5% Fe, 1% Mn", "80% Ni, 15% Cr, 5% Fe", "90% Ni, 5% Cr, 5% Fe", "nešto još, nečitko"], correct: [0], note: "Komentar iz zbirke: NiCu30Fe i LC‐NiCu30Fe (Alloy 400 ili Moneli" },
+        { q: "Sklonost vrućim pukotinama kod zavarivanja Ni legura ovisi najviše o:", options: ["sadržaju Mn", "sadržaju S", "sadržaju C", "sadržaju Cr"], correct: [1], note: "Komentar iz zbirke: TEMA 2.19 - NIKAL I LEGURE NIKLA - Str 30: Glavni izvor ovog problema je sumpor, ali negativno djeluju i fosfor te olovo, bizmut i bor" },
+        { q: "Al legure imaju slijedeća svojstva", options: ["malu gustoću (2.7 kg/dm3)", "pogodnost za plastično preoblikovanje", "visoku toplinsku vodljivost", "malu gustoću (1.2kg/dm3)"], correct: [0, 1, 2], note: "Komentar iz zbirke: TEMA 2.20 - ALUMINIJ I LEGURE ALUMINIJA - Str 13" },
+        { q: "Al legure se obično upotrebljavaju u:", options: ["zrakoplovnoj industriji", "auto industriji", "kotlogradnji", "izradi svrdla za naftne bušotine"], correct: [0, 1] },
+        { q: "Kod TIG zavarivanja Al legura uz primjenu DM:", options: ["preporučuje se predgrijavanje", "ne preporučuje se predgrijavanje", "uz dobru tehniku rada zavarivača, predgrijavanje nikada neće biti potrebno", "preporučuje se predgrijavanje samo kad je okolišna temperatura ispod 0 ºC"], correct: [0], note: "Komentar iz zbirke: TEMA 2.20 - ALUMINIJ I LEGURE ALUMINIJA - Str 193 | Da, Al voli predgrijavanje jer intenzivno odvodi toplinu. No ne previše, do 200 C kaže Weld.co" },
+        { q: "Kod MIG zavarivanja Al legura uobičajeno se koristi", options: ["\"push-pull\" sistem dodavanja žice", "\"push-push\" sistem dodavanja žice", "\"pull-pull\" sistem dodavanja žice", "uređaji zavarivanja sa ravnom karakteristikom"], correct: [0, 3] },
+        { q: "Odabrati točnu tvrdnju", options: ["kakvoća i svojstva zavarenog spoja raznorodnih čelika u vrlo velikoj mjeri ovise o izboru DM", "kod zavarivanja spoja raznorodnih čelika, izbor DM nije bitan, osnovno je paziti na pripremu spoja", "raznorodne čelike nije moguće kvalitetno zavariti", "ukoliko se zavaruje ugljični čelik i austenitni visokolegirani, dolazi do difuzije ugljika iz ugljičnog čelika u austenitni visokolegirani čelik"], correct: [0, 3] },
+        { q: "Cr i Ni ekvivalent su pojmovi koji se upotrebljavaju kod", options: ["zavarivanja raznorodnih čelika", "primjeni Schaefflerovog dijagrama", "određivanju temperature predgrijavanja", "određivanju C ekv"], correct: [0, 1] },
+        { q: "Stupanj protaljivanja (miješanja) kod zavarivanja raznorodnih čelika znatno ovisi o", options: ["snazi izvora struje (unosu topline)", "toplinskim i fizikalnim svojstvima materijala", "oblikovanju spoja", "temperaturi okoline"], correct: [0, 2] },
+        { q: "100% bainitna struktura može se dobiti", options: ["kaljenjem", "klasičnim poboljšavanjem", "izotermičkim poboljšavanjem", "izotermičkim žarenjem"], correct: [2], note: "Komentar iz zbirke: Nodularni lijev podvrgnut izotermičkoj obradi u cilju postizanja bainitne mikrostrukture naziva se izotermički nodularni lijev." },
+        { q: "Kod kojeg osnovnog mehanizma trošenja početak trošenja se ne javlja na mjestu kontakta funkcionalnih dijelova", options: ["abrazije", "adhezije", "umora površine", "tribokorozije"], correct: [2], note: "Komentar iz zbirke: ne | ne | ispod površine uslijed valjanja jednog tijela preko ili po drugom" },
+        { q: "Martenzitni PH čelici imaju:", options: ["1-10% Cr i 2-3% Ni", "14-17% Cr i 4-6% Ni", "10-12% Cr i 10-12% Ni", "12-13% Cr i 8-9% Ni"], correct: [1], note: "Komentar iz zbirke: 0,05% C ; 14...17% Cr ; 4...6% Ni ; 3% Cu ; (do 0,4% Nb)" },
+        { q: "Koji se materijal može primjeniti za temperature -50 ºC", options: ["sivi lijev", "visokougljični čelici", "sitnozrnati čelici", "feritični nerđajući čelici"], correct: [2], note: "Komentar iz zbirke: ima smisla ako kažemo da za rad na visoke temp. Ide obrnuto (grupo zrno)???" },
+        { q: "Annealing of a steel weld is a thermal procedure applied in order to:", options: ["partly restore the grain structure of the metal to its state prior to welding", "keep its structure, but change its mechanical properties.", "Change its structure, thus improving its mechanical properties.", "fully restore the structure of the metal to its state prior to welding"], correct: [0, 2] },
+        { q: "A material is described as conditionally weldable:", options: ["when, in addition to common welding procedures, preheating, thermal treatment, controlled heat input etc. are needed", "when the material distorts strongly during welding", "when the use of special welding procedures is required", "as a rule, all materials are readily weldable"], correct: [0, 2] },
+        { q: "Welded components operating at cryogenic temperatures can be constructed from:", options: ["Low-alloy creep-resistant steel.", "Martenzitic 9 and 12% modified chromium steel.", "Structural carbon steel with a carbon content over 0,2%.", "Depending on the lowest operating temperature, CrNi austenitic steels, duplex and superduplex steels, 3 and 9% Ni steels, or low-carbon low-alloy structural steels."], correct: [3] },
+        { q: "Coating thickness of hot dip zinc coating is about:", options: ["1 micron", "60 microns", "300 microns", "5 microns"], correct: [1] },
+        { q: "How can spherical graphite be formed in cast iron?", options: ["By adding Si", "By alloying with aluminium", "By adding Mg + Ce", "By fast cooling during solidification"], correct: [2] },
+        { q: "A material that has a high work hardening coefficient", options: ["will undergo large deformation prior to fracture.", "will display significant directionality in mechanical properties in the annealed condition", "tends to be less sensitive to fast cooling rates experienced during the weld cycle", "has a high capacity to increase its strength by plastic deformation."], correct: [3] },
+        { q: "Carbon in iron is present as", options: ["an interstitial alloying element", "a limited solubility solid solution", "a substitutional alloying element", "complete solid solubility solid solution"], correct: [0] },
+        { q: "Repeated cyclical rubbing between two surfaces is known as", options: ["Fatigue", "Fretting", "Vibration", "Friction"], correct: [1] },
+        { q: "Nitriding is good protection against:", options: ["surface fatigue", "abrasion", "erosion", "adhesion"], correct: [1, 2] },
+        { q: "Koji od navedenih elemenata ima najbolji utjecaj na prokaljivost", options: ["Cr", "Mn", "Al", "Cu"], correct: [0] },
+        { q: "Dodavanje legirnih elemenata niskolegiranim feritnim čelicima općenito", options: ["povećava duktilnost", "smanjuje prokaljivost", "povećava prokaljivost", "smanjuje zavarljivost"], correct: [3] },
+        { q: "Razlozi zbog kojih je višeslojni zavar obično žilaviji od jednoslojnog su", options: ["stvaranje izvjesne količine martenzita", "toplina jednog prolaza normalizira prethodni", "toplina jednog prolaza usitnjuje zrna prethodnog prolaza", "toplina jednog prolaza povećava zrna prethodnog prolaza"], correct: [1, 2] },
+        { q: "Koje od navedenih tvrdnji o hladnim pukotinama izazvanim vodikom su točne", options: ["nerazorna ispitivanja se moraju obaviti što je moguće prije, odmah nakon završetka zavarivanja", "pukotine se mogu pojaviti i u ZUT i u MZ", "pukotine se mogu nekad izbjeći primjenom većeg unosa topline", "manji sadržaj ugljika u osnovnom metalu smanjuje opasnost od pojave pukotina"], correct: [1, 2], note: "Komentar iz zbirke: da, recimo kod pripoja pogotovo, kratki pripoji su opasni pogotovo ko su jos na debelim stijenkama" },
+        { q: "Lamelarno trganje ovisi o/ izazvano je", options: ["kemijskim sastavom OM", "nezadovoljavajućim svojstvima u smjeru osi Z", "nezadovoljavajućim svojstvima u smjeru osi X-Y", "preniskom žilavošću"], correct: [0, 1] },
+        { q: "Koje od navedenih kristalografskih rešetki sadrže gusto složene klizne ravnine", options: ["FCC", "HCP", "BCC", "CS"], correct: [0, 1] },
+        { q: "C-Mn čelik se opisuje kao uvjetno zavarljiv", options: ["kada je uz primjenu običnih postupaka zavarivanja potrebno predgrijavanje, toplinska obrada, kontrolirani unos topline", "kada se materijal jako deformira kod zavarivanja", "kada je nužna upotreba specijalnih postupaka zavarivanja", "u pravilu, svi materijali su dobro zavarljivi"], correct: [0, 2] },
+        { q: "Koji od navedenih čelika ima najlošiju zavarljivost", options: ["X10CrMoVNb9-1", "X20CrMoV11-1", "X10Ni9", "X2CrNi18-9"], correct: [1], note: "Komentar iz zbirke: P91 | Ovaj je najlošiji... X20= 0.2% C a što više C lošija i zavarljivost" },
+        { q: "Koji čimbenik uzrokuje pukotine izazvane napetosnom korozijom", options: ["veliki sadržaj ugljika", "velika tlačna naprezanja", "elektrolit koji sadrži kloride i fluoride", "velika vlačna naprezanja ili zaostala, izazvana zavarivanjem"], correct: [2, 3], note: "Komentar iz zbirke: Tema 2.14, str 37/139" },
+        { q: "Pougljičenje je dobro za", options: ["izjedanje (fretting)", "zupčanike", "ležajeve", "umor površine"], correct: [1], note: "Komentar iz zbirke: Cementiranje čelika je postupak toplinske obrade koji se sastoji od pougljičenja, kaljenja i niskotemperaturnog popuštanja. Cilj je ostvarivanje tvrdoće na površinskim slojevima (otpornost na trošenje) i zadržavanje žilavosti u…" },
+        { q: "Koje od navedenih mjera su učinkovite u smanjenju količine poroznosti kod zavarivanja Al i Al legura", options: ["Uporaba He u zaštitnom plinu", "Izbjegavati dodirivanje područja spoja i dodatnog materijala golim prstima", "primjenjivati zavarivanje u krutom stanju umjesto zavarivanja taljenjem", "zavarivati samo toplinski obradive Al legure"], correct: [0, 1], note: "Komentar iz zbirke: Da: The higher heat and broader penetration pattern of the helium/argon mixtures will generally help to minimize gas entrapment and lower porosity levels in the completed weld." },
+        { q: "Kako se zavaruje spoj niskolegiranog čelika otpornog na puzanje (10CrMo9-10) i CrNi legiranog (X6CrNiTi18-10)", options: ["s DM na bazi Ni primjenjujući metodu međusloja", "s austenitnim DM primjenjujući metodu međusloja", "bez predgrijavanja", "s velikim miješanjem"], correct: [0], note: "Komentar iz zbirke: Da, u praksi koristimo ERNiCr-3 (S Ni 82) TIG žicu koja je na bazi Ni" },
+        { q: "Koje od navedenih tvrdnji su točne u vezi s CTOD ispitivanja čelika", options: ["CTOD je kratica za Crack Transmission by Overload and Deformation", "CTOD se provodi u cilju procjene izduženja materijala pri istezanju na niskim temperaturama", "CTOD je kratica za Crack Tip Opening Displacement", "CTOD test se provodi u cilju mjerenja otpora materijala prema napredovanju pukotine"], correct: [2, 3] },
+        { q: "Koja tvrdnja za ispitivanje tvrdoće po Brinellu (HB) je točna", options: ["moguće je preračunati HB tvrdoću u vlačnu čvrstoću koristeći tablice", "ispitivanje prema HB ne može u cijelosti zamijeniti vlačno ispitivanje jer mogu postojati velika odstupanja vlačne čvrstoće i vlačne čvrstoće izračunate prema tvrdoći", "mjeri se promjer otiska kojeg je ostavila kuglica", "kod HB ispitivanja koristi se čelična zakaljena kuglica"], correct: [2, 3] },
+        { q: "Zašto se u visoku peć kod proizvodnje željeza dodaje vapno", options: ["Da snizi talište nereduciranih oksida", "Da poveća talište nereduciranih oksida", "da snizi talište željeza", "da poveća talište željeza"], correct: [0] },
+        { q: "Koliki je postoak ugljika u sirovom željezu", options: ["veći od 2,03%", "veći od 4%", "veći od 0,8%", "manji od 4%"], correct: [0, 3] },
+        { q: "Što proizvodimo od sivog sirovoga željeza", options: ["Sivi lijev", "nodularni lijev", "vermikularni lijev", "bijeli temper lijev", "temper lijev"], correct: [0, 1, 2] },
+        { q: "Što proizvodimo od bijelog sirovoga željeza", options: ["Bijeli tvrdi lijev", "Temper bijeli lijev", "Temper crni lijev", "Čelike po potrebi"], correct: [0, 1, 2, 3] },
+        { q: "Koje greške mogu biti u čeličnome poluproizvodu", options: ["Unutrašnje", "Vanjske", "Mikrostrukturalne", "makroskoposke"], correct: [0, 1, 2] },
+        { q: "Čelici proizvedeni metalurgijom praha razlikuju se od običnih čelika:", options: ["imaju bolja svojstva", "imaju lošija svojstva", "imaju tragove segregacije", "nemaju tragove segregacije"], correct: [3] },
+        { q: "Čime se provodi dezoksidacija nesmirenoga čelika", options: ["Ca, Si, Al", "CO2, CaO", "Mn i Mo", "P i S"], correct: [0] },
+        { q: "Epruveta za vlačni pokus okrugla ima promjer", options: ["20 mm", "10 mm", "5 mm", "nije definirano"], correct: [0, 1, 2] },
+        { q: "Dužine i površine presjeka epruvete smije biti", options: ["Lo= 5,65* √S0", "Lo= 11,3* √S0", "nije definirano", "smije biti razmjerno ako nije moguće izraditi standardnu epruvetu"], correct: [0, 1, 3] },
+        { q: "Dubine epruvete V", options: ["1mm", "2mm", "3mm", "4mm"], correct: [1] },
+        { q: "Dubine epruvete U", options: ["1mm", "2mm", "3mm", "4mm"], correct: [2] },
+        { q: "Veze između atoma mogu biti", options: ["ionske", "kovaletne", "metalne", "dipolne", "mješovite"], correct: [0, 1, 2] },
+        { q: "Kationi imaju", options: ["pozitivan naboj", "negativan naboj", "veći polumjer od izvornoga atoma", "manji polumjer od izvornoga atoma"], correct: [0, 3] },
+        { q: "S porastom stupnja deformacije raste", options: ["čvrstoća", "granica razvlačenja", "tvrdoća"], correct: [0, 1, 2] },
+        { q: "S porastom stupnja deformacije pada", options: ["istezljivost", "kontrakcija ili suženje", "udarna žilavost", "modul elastičnosti"], correct: [0, 1, 2, 3] },
+        { q: "Koliko ugljika može otopiti austenit max", options: ["0,025", "0,8", "2,03", "4,3"], correct: [2] },
+        { q: "Koliko ugljika može otopiti ferit max", options: ["0,025", "0,8", "2,03", "4,3"], correct: [0] },
+        { q: "Na koju temperaturu se vrši grijanje radi žarenja za redukciju zaostalih napetosti", options: ["400-500 °C", "500-650 °C", "oko A1", "oko A3"], correct: [0] },
+        { q: "Na koju temperaturu se vrši grijanje rekristalizacije", options: ["400-500 °C", "500-650 °C", "oko A1", "oko A3"], correct: [1] },
+        { q: "Sferoidizacijsko žarenje ( meko žarenje)", options: ["400-500 °C", "500-650 °C", "oko A1", "oko A3"], correct: [2] },
+        { q: "Homogenizacijsko ili difuzijsko žarenje", options: ["iznad A3", "500-650 °C", "ispod A1", "ispod solidus linije"], correct: [0, 3] },
+        { q: "Zašto se prvovodi homogenizacijsko žarenje", options: ["da se uklone zaostale napetosti", "zbog rekristalziacije", "zbog normalizacije", "da se uklone segregacije nastale ohlađivanjem"], correct: [3] },
+        { q: "Sferoidizacijsko žarenje provodi se zbog", options: ["poboljšanja deformabilnosti nakon hladne deformacije", "otklanja segregacije", "povećava zrno radi lakše strojne obrade", "pobošava rezljivost čelika sa visokim sadržajem ugljika"], correct: [3] },
+        { q: "Normalizacijsko žarenje se provodi radi", options: ["usitnjaavanja grubozrnate strukture nastalu lijevanjem, zavarivanje i sl", "da se otklone zaostala naprezanja", "otklanja segregacija", "povećava zrno radi lakše strojne obrade"], correct: [0] },
+        { q: "Što je precipitacijsko očvrsnuće", options: ["to je povišenje granice tečenja i čvrstoće grijanjem do homogenizacije i otapanja percipita te gašenja tako da precipitati ostanu rastvoreni unutar zrna", "smanjenje granice tećenja i čvrstoće radi lakše obrade", "popuštanje zaostalih napetosti"], correct: [0] },
+        { q: "Procesi TO tijekom zavarivanja čelika", options: ["Područje zavarenoga spoja (zavar i ZUT) zagrijavaju se tijekom zavarivanja na različite visoke temperature pa se dešavaju promjene u mikrostrukturi", "ako je čelik osjetljiv na starenje, izlučivanje nitrida iz dušikom prezasićenoga ferita, čime se smanjuje deformabilnost i žilavost. Ako je čelik prethodno hladno deformiran može se izvršiti proces rekristalizacije", "Iznad temp A3 je potpuna normalizacija. U mikrostrukturi osim ferita i perlita može se pojaviti i bainit i martenzit", "Uvođenje ohlađivanja prosječne brzine ohlađivanja između 800-500°C i tzv parametara ohlađivanja nastoji se predvidjeti tijek smirivanja mikrostrukture pri ohlađivanju", "Primjena ekvivalenta ugljika je usmjerena na predviđanja pretvorbi mikrostrukture. Primjenjuje se normalizacijsko žarenje čime se usitnjava zrno. Primjenjuje se popuštanje neposredno nakon zavarivanja a koje se izvodi uz predgrijavanje"], correct: [0, 1, 2, 3, 4] },
+        { q: "Legiranje i provođenje TO", options: ["Mjerenje temperature pri TO provodi se najčešće termoelementima, direktno na obrađivanom dijelu", "Reguliranje temperature provodi se najčešće P i D regulacijom", "Programiranje procesa provodi se primjenom različitih vrsta mikroprocesora programatora s različitim funkcijama", "Zapis provedenoga procea je dokaz provedene tehnologije"], correct: [0, 1, 2, 3] },
+        { q: "Nastanak hladnih pukotina potaknut je:", options: ["Malom deformabilnošću (plastičnosću) materijala", "velikom zrnom materijala", "Velikim sadržajem difuzijskoga vodika u metalu zavara", "Lokalnom koncentracijom naprezanja"], correct: [0, 2, 3] },
+        { q: "TTT dijagram može poslužiti za:", options: ["procjenu strukture zavarenoga spoja", "procjenu tvrdoće i drugih svojstava zavarenoga spoja ( ako ima odgovarajući TTT dijagram)", "određivanje temperature predgrijavanja i dogrijavanja", "odabir trajanja hlađenja od 800 do 500 °C"], correct: [0, 1, 3] },
+        { q: "Prilikom ugrijavanja α željezo prelazi u γ željezo na temeperaturi:", options: ["770 °C", "898 °C", "1392 °C", "911 °C"], correct: [3] },
+        { q: "Izračunajte unešenu energiju (toplinski input) ako su izmjerene sljedeće vrijednosti parametara rel zavarivanja: i=160 A, U=25 V, v= 2 mm/s , dok je stupanj iskorištenja energije u električnom luku ƞ=0,8?", options: ["1600 J/mm", "1600 J/mm2", "1000 J/cm", "1,6 kJ/mm"], correct: [0, 3] }
+    ];
+
+    // Baza 4: Prošireni kviz za 2. ispit (stara pitanja + pitanja iz uvoda/vodiča za učenje i priprema za predavanja 1–28)
+    const extendedQuestions2 = [
+        ...oldQuestions2,
+        { q: "Što vrijedi za prostorno centriranu kubičnu (BCC) rešetku?", options: ["2 atoma po jediničnoj ćeliji", "koordinacijski broj 8", "faktor popunjenosti 74 %", "koordinacijski broj 12"], correct: [0, 1] },
+        { q: "Što vrijedi za plošno centriranu kubičnu (FCC) rešetku?", options: ["koordinacijski broj 8", "faktor popunjenosti 68 %", "4 atoma po jediničnoj ćeliji", "faktor popunjenosti 74 %"], correct: [2, 3] },
+        { q: "Koliko kliznih sustava ima HCP rešetka?", options: ["12", "3", "48", "8"], correct: [1] },
+        { q: "Koji metali i faze imaju FCC rešetku (najduktilnija rešetka)?", options: ["Al, Cu, Ni", "austenit", "ferit", "martenzit"], correct: [0, 1] },
+        { q: "Dislokacije su:", options: ["točkaste greške rešetke", "površinske greške rešetke", "linijske greške rešetke", "volumne greške rešetke"], correct: [2] },
+        { q: "Što vrijedi za dislokacije i očvršćivanje metala?", options: ["Gibanje dislokacija predstavlja plastičnu deformaciju", "Svi mehanizmi očvršćivanja ometaju gibanje dislokacija", "Dislokacije postoje samo u talini", "Očvršćivanje se postiže olakšavanjem gibanja dislokacija"], correct: [0, 1] },
+        { q: "Eutektik u Fe-C dijagramu nalazi se na:", options: ["0,8 % C i 723 °C", "2,03 % C i 1147 °C", "4,3 % C i 1147 °C", "6,67 % C i 723 °C"], correct: [2] },
+        { q: "Eutektoid u Fe-C dijagramu nalazi se na:", options: ["0,8 % C i 723 °C", "4,3 % C i 1147 °C", "0,025 % C i 911 °C", "2,03 % C i 723 °C"], correct: [0] },
+        { q: "Koja je razlika između eutektičke i eutektoidne reakcije?", options: ["Eutektoid: talina prelazi u dvije čvrste faze", "Eutektik: talina prelazi u dvije čvrste faze", "Eutektik: jedna čvrsta faza prelazi u talinu", "Eutektoid: jedna čvrsta faza prelazi u dvije čvrste faze"], correct: [1, 3] },
+        { q: "Maksimalna topljivost ugljika iznosi:", options: ["u austenitu 2,03 %", "u feritu 0,025 % (na 723 °C)", "u austenitu 0,8 %", "u feritu 0,8 %"], correct: [0, 1] },
+        { q: "Što vrijedi za martenzit?", options: ["Nastaje difuzijskom pretvorbom pri sporom hlađenju", "To je prezasićena otopina C u Fe s BCT rešetkom", "Pretvorba je bezdifuzijska", "Nastaje hlađenjem brzinom većom od kritične"], correct: [1, 2, 3] },
+        { q: "Koja je razlika između TTT i CCT dijagrama?", options: ["TTT prikazuje izotermičku pretvorbu", "CCT prikazuje pretvorbu pri kontinuiranom hlađenju", "TTT prikazuje ravnotežne strukture kao Fe-C dijagram", "CCT vrijedi samo za aluminijske legure"], correct: [0, 1] },
+        { q: "Što vrijedi za bainit?", options: ["Postoje gornji i donji bainit", "Daje dobru kombinaciju čvrstoće i žilavosti", "To je ravnotežna faza iz Fe-C dijagrama", "Nastaje isključivo pri temperaturi iznad A3"], correct: [0, 1] },
+        { q: "Kako se čelici dijele prema dezoksidaciji i što ih karakterizira?", options: ["Nesmireni – nehomogeni, lošijih svojstava", "Smireni – dezoksidirani sa Si i Mn", "Posebno smireni – dodatno Al, sitno zrno (AlN), najbolja žilavost", "Posebno smireni – bez ikakve dezoksidacije"], correct: [0, 1, 2] },
+        { q: "Plastična rezerva čelika izražava se omjerom Re/Rm. Što vrijedi?", options: ["Uobičajeno iznosi oko 0,70–0,85", "Manji omjer znači veću plastičnu rezervu i sigurnost od krhkog loma", "Veći omjer znači veću plastičnu rezervu", "Uobičajeno iznosi oko 0,10–0,30"], correct: [0, 1] },
+        { q: "Mikrolegirani čelici:", options: ["sadrže Nb, V, Ti u udjelu manjem od oko 0,1 %", "imaju sitno zrno te višu čvrstoću i žilavost", "imaju lošu zavarljivost zbog visokog udjela ugljika", "legirani su s više od 12 % Cr"], correct: [0, 1] },
+        { q: "Što snizuje prijelaznu temperaturu čelika (žilavo → krhko)?", options: ["Sitnije zrno", "Dodatak Ni", "Manje P, S i N", "Veći udio P i S"], correct: [0, 1, 2] },
+        { q: "Koje se skupine čelika koriste za niske temperature?", options: ["Mikrolegirani sitnozrnati čelici do oko −50 °C", "Ni čelici (1,5–12 % Ni) do oko −200 °C; 9 % Ni za LNG", "Austenitni čelici do blizu apsolutne nule", "Nelegirani čelici s više od 0,6 % C do −196 °C"], correct: [0, 1, 2] },
+        { q: "Kako glasi izraz za efektivni unos topline pri zavarivanju?", options: ["Eef = η · U · I · v", "Eef = η · U · I / v", "Eef = U / (η · I · v)", "Eef = η · I² · R"], correct: [1] },
+        { q: "Što uzrokuje veći unos topline pri zavarivanju čelika?", options: ["Sporije hlađenje (dulje t8/5)", "Grublje zrno u ZUT-u", "Manje zakaljivanja", "Brže hlađenje i više martenzita"], correct: [0, 1, 2] },
+        { q: "Što predstavlja vrijeme t8/5?", options: ["Vrijeme zagrijavanja od 500 do 800 °C", "Vrijeme hlađenja od 800 do 500 °C", "Ključni parametar toplinskog ciklusa zavarivanja", "Vrijeme držanja pri žarenju"], correct: [1, 2] },
+        { q: "Kako viša temperatura predgrijavanja utječe na t8/5?", options: ["Skraćuje vrijeme hlađenja t8/5", "Ne utječe na t8/5", "Produljuje vrijeme hlađenja t8/5", "Utječe samo kod aluminija"], correct: [2] },
+        { q: "Kada se za vođenje topline primjenjuje 2D, a kada 3D model?", options: ["2D (dvodimenzionalno) – tanki lim", "3D (trodimenzionalno) – debeli lim", "2D – debeli lim", "3D – tanki lim"], correct: [0, 1] },
+        { q: "Što povećava brzinu hlađenja zavarenog spoja?", options: ["Manji unos topline", "Niža temperatura predgrijavanja", "Veća debljina lima", "Viša temperatura predgrijavanja"], correct: [0, 1, 2] },
+        { q: "Zona pregrijavanja u ZUT-u čelika:", options: ["zagrijana je na oko 1100–1450 °C", "ima grubo zrno", "ima najsitnije zrno u cijelom ZUT-u", "zagrijana je na 200–500 °C"], correct: [0, 1] },
+        { q: "Zonu normalizacije u ZUT-u karakterizira:", options: ["grubo zrno", "sitno zrno", "rastaljeni metal", "plavi lom"], correct: [1] },
+        { q: "Zona starenja i plavog loma u ZUT-u nalazi se u temperaturnom području:", options: ["1100–1450 °C", "723–911 °C", "200–500 °C", "ispod 100 °C"], correct: [2] },
+        { q: "Koje vrste zavarljivosti razlikujemo?", options: ["operativnu", "metaluršku (lokalnu)", "konstrukcijsku", "magnetsku"], correct: [0, 1, 2] },
+        { q: "Metalurška (lokalna) zavarljivost odnosi se na:", options: ["procjenu fizikalno-kemijskih pretvorbi u ZUT-u", "krutost i oblik konstrukcije", "dostupnost opreme i položaj zavarivanja", "cijenu dodatnog materijala"], correct: [0] },
+        { q: "Što se postiže predgrijavanjem?", options: ["Smanjuje se brzina hlađenja (veći t8/5)", "Omogućuje se izlazak vodika", "Smanjuju se naprezanja", "Povećava se brzina hlađenja"], correct: [0, 1, 2] },
+        { q: "O čemu ovisi potrebna temperatura predgrijavanja?", options: ["Veći ekvivalent ugljika zahtijeva višu temperaturu", "Veća debljina zahtijeva višu temperaturu", "Veća debljina zahtijeva nižu temperaturu", "Ne ovisi o kemijskom sastavu"], correct: [0, 1] },
+        { q: "Koja tri uvjeta moraju biti ispunjena za nastanak hladnih pukotina?", options: ["Zakaljiva (krhka) struktura", "Difuzijski vodik", "Vlačno naprezanje", "Nisko taljivi filmovi S i P"], correct: [0, 1, 2] },
+        { q: "Kada i gdje nastaju hladne pukotine?", options: ["Ispod oko 200 °C", "Ponekad i nekoliko dana nakon zavarivanja", "U zoni taljenja i u ZUT-u", "Isključivo tijekom skrućivanja taline"], correct: [0, 1, 2] },
+        { q: "Što smanjuje opasnost od hladnih pukotina?", options: ["Predgrijavanje", "Suhe / niskovodikove elektrode", "Dogrijavanje i PWHT", "Veća ukrućenost spoja i viši CE"], correct: [0, 1, 2] },
+        { q: "Gdje nastaju pojedine vrste toplih pukotina?", options: ["Kristalizacijske – u zoni taljenja", "Likvacijske – u ZUT-u", "Kristalizacijske – u osnovnom materijalu daleko od zavara", "Likvacijske – samo ispod 200 °C"], correct: [0, 1] },
+        { q: "Koji su uzroci toplih pukotina?", options: ["S i P (nisko taljivi filmovi po granicama zrna)", "Naprezanja pri skrućivanju", "Nepovoljan oblik zavara (odnos širine i dubine)", "Difuzijski vodik"], correct: [0, 1, 2] },
+        { q: "Što uzrokuje lamelarno odvajanje i kako se sprječava?", options: ["Naprezanje u smjeru debljine lima", "Nehomogenosti (sulfidi) u osnovnom materijalu", "Sprječava se primjenom čelika Z-kvalitete", "Sprječava se povećanjem udjela sumpora"], correct: [0, 1, 2] },
+        { q: "Pukotine zbog naknadnog zagrijavanja tipične su za:", options: ["CrMo i CrMoV čelike pri toplinskoj obradi", "nelegirane čelike pri zavarivanju bez predgrijavanja", "aluminijske legure serije 5xxx", "sivi lijev"], correct: [0] },
+        { q: "U kojim se jedinicama izražava difuzijski vodik u metalu zavara?", options: ["mg/kg", "ml/100 g metala zavara", "% volumena", "ppm po mm²"], correct: [1] },
+        { q: "Što je linija staljivanja?", options: ["Granica između zone taljenja i ZUT-a", "Granica između ZUT-a i nepromijenjenog osnovnog materijala", "Os simetrije zavara", "Linija na TTT dijagramu"], correct: [0] },
+        { q: "Koji su uvjeti za kaljenje čelika?", options: ["Više od oko 0,35 % C", "Temperatura austenitizacije A3 + 30–70 °C (podeutektoidni čelici)", "Brzina hlađenja veća od kritične", "Brzina hlađenja manja od kritične"], correct: [0, 1, 2] },
+        { q: "Poboljšavanje čelika je:", options: ["kaljenje + visoko popuštanje", "normalizacija + sferoidizacija", "postupak kojim se postiže čvrstoća uz dobru žilavost", "žarenje za redukciju naprezanja"], correct: [0, 2] },
+        { q: "Koja žarenja spadaju u žarenja I. vrste (ispod A1)?", options: ["Žarenje za redukciju naprezanja (400–650 °C)", "Rekristalizacijsko žarenje (500–650 °C)", "Normalizacijsko žarenje", "Homogenizacijsko žarenje"], correct: [0, 1] },
+        { q: "Koja žarenja spadaju u žarenja II. vrste (iznad A1)?", options: ["Normalizacijsko", "Homogenizacijsko", "Žarenje na grubo zrno", "Žarenje za redukciju naprezanja"], correct: [0, 1, 2] },
+        { q: "Što vrijedi za toplinsku obradu nakon zavarivanja (PWHT)?", options: ["Smanjuje zaostala naprezanja i tvrdoću ZUT-a", "Omogućuje izlazak vodika", "Držanje na 600 °C traje oko 2–2,5 min/mm debljine", "Brzina zagrijavanja treba biti što veća (iznad 1000 °C/h)"], correct: [0, 1, 2] },
+        { q: "Što je puzanje?", options: ["Spora, nepovratna deformacija pri konstantnom opterećenju i visokoj temperaturi", "Javlja se pri T ≥ 0,3·Tt (kod čelika iznad oko 400–450 °C)", "Trenutni krhki lom pri niskoj temperaturi", "Elastična deformacija koja nestaje rasterećenjem"], correct: [0, 1] },
+        { q: "Koji su stadiji puzanja?", options: ["Primarni", "Sekundarni (stacionarni)", "Tercijarni (završava lomom)", "Eutektoidni"], correct: [0, 1, 2] },
+        { q: "Koji legirni elementi povećavaju otpornost na puzanje?", options: ["Mo", "V i W", "Cr", "S i P"], correct: [0, 1, 2] },
+        { q: "Do kojih se radnih temperatura koriste pojedine skupine čelika?", options: ["Nelegirani do oko 450 °C", "Mo i CrMo čelici do oko 550 °C", "Austenitni čelici oko 600–800 °C", "Nelegirani do oko 800 °C"], correct: [0, 1, 2] },
+        { q: "Što čini čelik nehrđajućim?", options: ["Više od oko 12 % Cr", "Pasivni oksidni sloj Cr2O3 debljine nekoliko nanometara", "Više od 2 % C", "Sloj cinka debljine 60 µm"], correct: [0, 1] },
+        { q: "Koji je tipičan problem pri zavarivanju pojedinih skupina nehrđajućih čelika?", options: ["Austenitni – tople pukotine i deformacije", "Feritni – grubo zrno u ZUT-u i krhkost", "Martenzitni – hladne pukotine, potrebna toplinska obrada", "Duplex – potpuno austenitna struktura zavara"], correct: [0, 1, 2] },
+        { q: "Što je senzibilizacija nehrđajućih čelika?", options: ["Izlučivanje Cr23C6 po granicama zrna (oko 500–850 °C)", "Osiromašenje kromom uz granice zrna i interkristalna korozija", "Stvaranje martenzita pri brzom hlađenju", "Izlučivanje grafita u obliku listića"], correct: [0, 1] },
+        { q: "Kako se sprječava senzibilizacija (interkristalna korozija)?", options: ["Udio C manji od 0,03 %", "Stabilizacija s Ti i Nb", "Rastvorno žarenje 1050–1100 °C i gašenje", "Dugo zadržavanje na 650 °C"], correct: [0, 1, 2] },
+        { q: "Po čemu se razlikuju Schaefflerov, De Longov i WRC-1992 dijagram?", options: ["De Long uzima u obzir dušik (N)", "WRC-1992 uzima u obzir bakar (Cu)", "WRC-1992 ne prikazuje martenzit", "Schaeffler se koristi samo za aluminij"], correct: [0, 1, 2] },
+        { q: "Kako glasi izraz za PREN (otpornost na rupičastu koroziju)?", options: ["PREN = %Cr + 3,3·%Mo + 16·%N", "PREN = %Ni + 30·%C + 0,5·%Mn", "PREN = C + Mn/6", "PREN = %Cr + %Mo + 1,5·%Si"], correct: [0] },
+        { q: "Kako glase ekvivalenti prema WRC-1992 dijagramu?", options: ["Cr-ekv. = Cr + Mo + 0,7·Nb", "Ni-ekv. = Ni + 35·C + 20·N + 0,25·Cu", "Cr-ekv. = C + Mn/6", "Ni-ekv. = Ni + Cr"], correct: [0, 1] },
+        { q: "Koji se feritni broj (FN) preporučuje za otpornost na tople pukotine kod austenitnog metala zavara?", options: ["FN ≈ 0", "FN ≈ 5", "FN ≈ 50", "FN ≈ 100"], correct: [1] },
+        { q: "Kada postoji rizik izlučivanja sigma faze?", options: ["Pri udjelu Cr većem od oko 20 %", "Pri dugom zadržavanju na 500–900 °C", "Pri udjelu Cr manjem od 5 %", "Pri hlađenju ispod −50 °C"], correct: [0, 1] },
+        { q: "Što vrijedi za duplex čelike?", options: ["Imaju približno 50 % ferita i 50 % austenita", "Tipičan problem pri zavarivanju je feritizacija zavara / ZUT-a", "Imaju potpuno martenzitnu strukturu", "Za njih je najprikladniji WRC-1992 dijagram"], correct: [0, 1, 3] },
+        { q: "Što je važno pri zavarivanju raznorodnih čelika (nehrđajući na ugljični)?", options: ["Prelegirani dodatni materijal (tip 309)", "Što manja dilucija", "Migracija ugljika i različito toplinsko istezanje", "Što veća dilucija"], correct: [0, 1, 2] },
+        { q: "Koliko je toplinsko istezanje austenitnog čelika u odnosu na feritni?", options: ["Oko 1,5–1,7 puta veće", "Jednako", "Oko 2 puta manje", "Oko 10 puta veće"], correct: [0] },
+        { q: "Kako se određuje dilucija na zavarenom spoju?", options: ["Mjerenjem površina (planimetriranjem) na 3 ili više metalografskih makro-snimaka", "Mjerenjem tvrdoće po Vickersu", "Vlačnim pokusom", "Charpyjevim ispitivanjem"], correct: [0] },
+        { q: "Što je vodikova bolest bakra?", options: ["Reakcija Cu2O s vodikom u bakru koji sadrži kisik", "Razlog zašto se zavaruje samo bakar bez kisika (Cu-DHP, Cu-DLP)", "Korozija bakra u morskoj vodi", "Isparavanje cinka iz mjedi"], correct: [0, 1] },
+        { q: "Kolika je toplinska vodljivost bakra u odnosu na čelik?", options: ["Približno jednaka", "Oko 7–8 puta veća", "Oko 2 puta manja", "Oko 100 puta veća"], correct: [1] },
+        { q: "Zašto su legure nikla sklone toplim pukotinama?", options: ["Zbog eutektika Ni3S2 koji se tali na oko 637 °C", "Zbog visokog udjela ugljika", "Zbog stvaranja martenzita", "Zato je pri zavarivanju potrebna iznimna čistoća"], correct: [0, 3] },
+        { q: "Što vrijedi za titan?", options: ["Pri 882 °C prelazi iz α (HCP) u β (BCC)", "Zaštita plinom potrebna je dok se ne ohladi ispod oko 500 °C", "Kvaliteta zavara kontrolira se mjerenjem tvrdoće", "Nije osjetljiv na O, N i H"], correct: [0, 1, 2] },
+        { q: "Koje se serije Al legura očvršćuju hladnim deformiranjem (toplinski neobradive)?", options: ["1xxx", "3xxx i 5xxx", "2xxx", "6xxx i 7xxx"], correct: [0, 1] },
+        { q: "Koje su Al legure dobro, a koje slabo zavarljive?", options: ["Dobro zavarljive: 5xxx (i 6xxx)", "Slabo zavarljive: 2xxx i 7xxx", "Dobro zavarljive: 2xxx", "Slabo zavarljive: 5xxx"], correct: [0, 1] },
+        { q: "Koji su glavni problemi pri zavarivanju aluminija?", options: ["Pore od vodika", "Oksid Al2O3 (tali se na oko 2050 °C)", "Tople pukotine i pad čvrstoće u ZUT-u", "Hladne pukotine zbog martenzita"], correct: [0, 1, 2] },
+        { q: "Kakav oblik grafita / struktura odgovara pojedinom lijevu?", options: ["Sivi lijev – listićavi grafit", "Nodularni lijev – kuglasti grafit", "Temper lijev – čvorasti grafit", "Bijeli tvrdi lijev – kuglasti grafit"], correct: [0, 1, 2] },
+        { q: "Kako glasi ekvivalent ugljika za lijevove?", options: ["CE = C + Mn/6", "CE = C + (Si + P)/3", "CE = C + Cr/5", "CE = C + Ni/15"], correct: [1] },
+        { q: "Kako glasi Séférianov izraz za temperaturu predgrijavanja?", options: ["To = 350 · √(C′ − 0,25) °C", "To = 1440 · Pw − 392 °C", "To = A3 + 30–70 °C", "To = 0,3 · Tt"], correct: [0] },
+        { q: "Kako glasi izraz za toplinsko naprezanje?", options: ["σ = E · β · ΔT", "σ = F / A", "σ = E / ε", "σ = η · U · I / v"], correct: [0] },
+        { q: "Što određuje dijagram Bragarda?", options: ["Temperaturu predgrijavanja", "Graničnu debljinu", "Toplinski unos", "Udio delta ferita"], correct: [0, 1, 2] },
+        { q: "Koje veličine dobivamo iz vlačnog pokusa?", options: ["Rm = Fm / S0", "A = (Lu − L0)/L0 · 100 %", "Z = (S0 − Su)/S0 · 100 %", "KV = G · (h1 − h2)"], correct: [0, 1, 2] },
+        { q: "Kolika je početna mjerna duljina kratke proporcionalne epruvete?", options: ["L0 = 5,65 · √S0", "L0 = 11,3 · √S0", "L0 = 2 · S0", "L0 = 100 mm uvijek"], correct: [0] },
+        { q: "Što vrijedi za metode mjerenja tvrdoće?", options: ["Brinell – kuglica, mjeri se promjer otiska", "Rockwell – mjeri se dubina prodiranja", "Vickers – dijamantna piramida s kutom 136°", "Vickers – čelična kuglica promjera 10 mm"], correct: [0, 1, 2] },
+        { q: "Što vrijedi za Charpyjevo ispitivanje udarnog rada loma?", options: ["KV = G · (h1 − h2)", "Za hladno žilave čelike traži se najmanje 27 J pri propisanoj temperaturi", "Mjeri se tvrdoća u HV", "Rezultat se izražava u N/mm²"], correct: [0, 1] },
+        { q: "Što vrijedi za veličinu zrna prema ASTM E 112?", options: ["n = 2^(G − 1)", "Veći broj G znači sitnije zrno", "Veći broj G znači krupnije zrno", "G se mjeri u mm"], correct: [0, 1] },
+        { q: "Kako se računa ukupno povećanje svjetlosnog mikroskopa?", options: ["objektiv × okular", "objektiv + okular", "objektiv / okular", "okular − objektiv"], correct: [0] },
+        { q: "Što vrijedi za umor materijala?", options: ["Oko 80–90 % lomova u praksi posljedica je umora", "Granični broj ciklusa za čelik je 10^7", "Granični broj ciklusa za lake metale je 10^8", "Umor se javlja samo pri statičkom opterećenju"], correct: [0, 1, 2] },
+        { q: "Što je kvazistacionarno temperaturno polje?", options: ["Polje koje ostaje nepromijenjeno u odnosu na izvor topline koji se giba", "Polje na samom početku zavarivanja", "Polje u potpuno ohlađenom komadu", "Polje koje postoji samo kod plinskog zavarivanja"], correct: [0] },
+        { q: "Kolika je debljina pasivnog sloja kod CrNi čelika?", options: ["1–10 nm", "1–10 µm", "60 µm", "0,1–1 mm"], correct: [0] },
+        { q: "Koliki se udio δ-ferita u metalu zavara austenitnih čelika traži radi otpornosti na tople pukotine?", options: ["0 %", "2–12 %", "30–40 %", "više od 50 %"], correct: [1] }
+    ];
+
+    // =====================================================================
+    // POPIS ISPITA – za novi ispit dodaj novu bazu pitanja i jedan unos ovdje
+    // =====================================================================
+    const exams = [
+        {
+            name: "1. ispit – Postupci zavarivanja i oprema",
+            icon: "🔥",
+            quizzes: [
+                { key: 'old', label: "📜 Stara ispitna pitanja", title: "1. ispit – Stara ispitna pitanja", questions: oldQuestions },
+                { key: 'extended', label: "🚀 Prošireni kviz (Stara pitanja + Skripte + Predavanja)", title: "1. ispit – Prošireni kviz", questions: extendedQuestions }
+            ]
+        },
+        {
+            name: "2. ispit – Materijali",
+            icon: "🧪",
+            quizzes: [
+                { key: 'old', label: "📜 Stara ispitna pitanja (ispit 2013. A i B + zbirka)", title: "2. ispit – Stara ispitna pitanja", questions: oldQuestions2 },
+                { key: 'extended', label: "🚀 Prošireni kviz (Stara pitanja + Pripreme za predavanja)", title: "2. ispit – Prošireni kviz", questions: extendedQuestions2 }
+            ]
+        }
+    ];
+
+    let currentExam = null;
     let activeQuestions = [];
     let questions = [];
     let currentIndex = 0;
@@ -895,26 +1434,65 @@
         return array;
     }
 
-    // Korak 1: Korisnik bira vrstu kviza
-    function selectQuizType(type) {
-        if (type === 'old') {
-            activeQuestions = oldQuestions;
-            document.getElementById('app-title').innerText = "Stara ispitna pitanja";
-            document.getElementById('sub-menu-desc').innerText = "Izaberite koliko stara pitanja želite rješavati:";
-        } else {
-            activeQuestions = extendedQuestions;
-            document.getElementById('app-title').innerText = "Novi prošireni kviz (Skripte i Predavanja)";
-            document.getElementById('sub-menu-desc').innerText = "Izaberite koliko pitanja iz proširenog gradiva želite rješavati:";
-        }
+    const ALL_SCREENS = ['main-menu-screen', 'type-menu-screen', 'sub-menu-screen', 'quiz-screen', 'results-screen', 'review-screen'];
 
-        document.getElementById('main-menu-screen').style.display = 'none';
-        
+    function showScreen(id) {
+        ALL_SCREENS.forEach(s => {
+            document.getElementById(s).style.display = (s === id) ? 'block' : 'none';
+        });
+        document.querySelector('.container').scrollTop = 0;
+    }
+
+    // Glavni izbornik: popis ispita
+    function renderExamButtons() {
+        const container = document.getElementById('exam-buttons-container');
+        container.innerHTML = '';
+        exams.forEach((exam, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'btn';
+            btn.innerText = `${exam.icon} ${exam.name}`;
+            btn.onclick = () => selectExam(idx);
+            container.appendChild(btn);
+        });
+    }
+
+    // Korak 1: Korisnik bira ispit
+    function selectExam(idx) {
+        currentExam = exams[idx];
+        goToTypeMenu();
+    }
+
+    function goToTypeMenu() {
+        if (!currentExam) { goToMainMenu(); return; }
+        document.getElementById('app-title').innerText = currentExam.name;
+
+        const container = document.getElementById('type-buttons-container');
+        container.innerHTML = '';
+        currentExam.quizzes.forEach(quiz => {
+            const btn = document.createElement('button');
+            btn.className = 'btn';
+            btn.innerText = `${quiz.label} – ${quiz.questions.length} pitanja`;
+            btn.onclick = () => selectQuizType(quiz.key);
+            container.appendChild(btn);
+        });
+
+        showScreen('type-menu-screen');
+    }
+
+    // Korak 2: Korisnik bira vrstu kviza (stara pitanja / prošireni)
+    function selectQuizType(type) {
+        const quiz = currentExam.quizzes.find(qz => qz.key === type);
+        activeQuestions = quiz.questions;
+        document.getElementById('app-title').innerText = quiz.title;
+        document.getElementById('sub-menu-desc').innerText = "Izaberite koliko pitanja želite rješavati:";
+
         const subMenuContainer = document.getElementById('sub-menu-buttons-container');
         subMenuContainer.innerHTML = '';
 
         const totalAvailable = activeQuestions.length;
         // Dinamički prilagođavamo opcije broja pitanja ovisno o bazi
-        let optionsCount = totalAvailable > 150 ? [30, 60, 90, 150, 200, totalAvailable] : [30, 60, 90, totalAvailable];
+        let optionsCount = [30, 60, 90, 150, 200].filter(c => c < totalAvailable);
+        optionsCount.push(totalAvailable);
 
         optionsCount.forEach(count => {
             const btn = document.createElement('button');
@@ -928,23 +1506,26 @@
             subMenuContainer.appendChild(btn);
         });
 
-        document.getElementById('sub-menu-screen').style.display = 'block';
+        showScreen('sub-menu-screen');
     }
 
     function goToMainMenu() {
-        document.getElementById('sub-menu-screen').style.display = 'none';
-        document.getElementById('quiz-screen').style.display = 'none';
-        document.getElementById('results-screen').style.display = 'none';
-        document.getElementById('review-screen').style.display = 'none';
-        document.getElementById('main-menu-screen').style.display = 'block';
+        renderExamButtons();
+        showScreen('main-menu-screen');
         document.getElementById('app-title').innerText = "IWE Kviz - Glavni Izbornik";
     }
 
+    // Napomena uz pitanje (polje "note") – prikazuje se nakon odgovora
+    function appendNote(parent, q) {
+        if (!q.note) return;
+        const noteDiv = document.createElement('div');
+        noteDiv.className = 'q-note';
+        noteDiv.innerText = `ℹ Napomena: ${q.note}`;
+        parent.appendChild(noteDiv);
+    }
+
     function goToSubMenu() {
-        document.getElementById('quiz-screen').style.display = 'none';
-        document.getElementById('results-screen').style.display = 'none';
-        document.getElementById('review-screen').style.display = 'none';
-        document.getElementById('sub-menu-screen').style.display = 'block';
+        showScreen('sub-menu-screen');
     }
 
     function startQuiz(limit) {
@@ -957,8 +1538,7 @@
         currentIndex = 0;
         score = 0;
 
-        document.getElementById('sub-menu-screen').style.display = 'none';
-        document.getElementById('quiz-screen').style.display = 'block';
+        showScreen('quiz-screen');
         loadQuestion();
     }
 
@@ -977,13 +1557,7 @@
     }
 
     function showReviewScreen(questionsArray, titleText) {
-        document.getElementById('main-menu-screen').style.display = 'none';
-        document.getElementById('sub-menu-screen').style.display = 'none';
-        document.getElementById('quiz-screen').style.display = 'none';
-        document.getElementById('results-screen').style.display = 'none';
-        
-        const reviewScreen = document.getElementById('review-screen');
-        reviewScreen.style.display = 'block';
+        showScreen('review-screen');
 
         document.getElementById('review-title').innerText = titleText;
         const container = document.getElementById('review-container');
@@ -1012,6 +1586,7 @@
                 card.appendChild(optDiv);
             });
 
+            appendNote(card, q);
             container.appendChild(card);
         });
     }
@@ -1103,6 +1678,7 @@
         feedback.style.display = 'block';
         feedback.innerText = `Pitanje je preskočeno (+0.00 bodova).`;
         feedback.className = 'feedback skipped';
+        appendNote(feedback, q);
 
         const actionButtons = document.getElementById('action-buttons');
         actionButtons.innerHTML = `<button class="btn btn-main" style="width: 100%;" onclick="nextQuestion()">Sljedeće pitanje</button>`;
@@ -1183,6 +1759,7 @@
             feedback.innerText = `Netočno! Odabran je krivi odgovor. Bodovi: ${points.toFixed(2)}`;
             feedback.className = 'feedback incorrect';
         }
+        appendNote(feedback, q);
 
         const actionButtons = document.getElementById('action-buttons');
         actionButtons.innerHTML = `<button class="btn btn-main" style="width: 100%;" onclick="nextQuestion()">Sljedeće pitanje</button>`;
@@ -1198,8 +1775,7 @@
     }
 
     function showResults() {
-        document.getElementById('quiz-screen').style.display = 'none';
-        document.getElementById('results-screen').style.display = 'block';
+        showScreen('results-screen');
         
         let maxPossibleScore = questions.length;
         let percentage = (score / maxPossibleScore) * 100;
