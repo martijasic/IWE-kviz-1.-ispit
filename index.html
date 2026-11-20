@@ -173,6 +173,12 @@
             margin-bottom: 5px;
             font-size: 0.95rem;
         }
+        .review-opt.is-wrong-pick {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--error);
+            border-left: 4px solid var(--error);
+            font-weight: 600;
+        }
         .review-opt.is-correct {
             background-color: rgba(34, 197, 94, 0.2);
             color: var(--success);
@@ -335,7 +341,15 @@
         <h2>Kviz je završen!</h2>
         <div class="score-display" id="final-score"></div>
         <p id="percentage-display"></p>
+        <div id="pass-badge" style="text-align:center;font-weight:700;font-size:1.3rem;padding:12px;border-radius:8px;margin:10px 0;"></div>
+        <div style="position:relative;height:14px;background:#0f172a;border:1px solid var(--border);border-radius:8px;margin:14px 0 4px;">
+            <div id="res-bar" style="height:100%;width:0;border-radius:8px;"></div>
+            <div style="position:absolute;left:60%;top:-4px;bottom:-4px;width:2px;background:#fff;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:0.8rem;opacity:0.7;margin-bottom:14px;"><span>0 %</span><span>prag 60 %</span><span>100 %</span></div>
+        <div id="res-tiles" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:10px;"></div>
         <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-secondary" id="review-mistakes-btn" onclick="openReviewMistakes()">❌ Pogledaj krivo i djelomično točne odgovore (što si označio i što je točno)</button>
             <button class="btn btn-secondary" onclick="openReviewCurrentSession()">📝 Pregled pitanja i točnih odgovora iz ovog kruga</button>
             <button class="btn" style="width: 100%;" onclick="goToSubMenu()">Nazad na meni kviza</button>
             <button class="btn btn-cancel" style="width: 100%;" onclick="goToMainMenu()">Glavni izbornik (Odabir ispita)</button>
@@ -517,7 +531,7 @@
         {"q": "Kada se zavaruje bakar, mora se uzeti u obzir:", "options": ["malo toplinsko istezanje", "velika toplinska vodljivost", "mala topljivost vodika", "stvaranje oksida"], "correct": [1, 3]},
         {"q": "Kada se zavaruju Ni i legure nikla, potrebno je:", "options": ["predgrijavanje na 150 0C prije zavarivanja", "odmastiti i očistiti dijelove prije zavarivanja", "zavariti bez posebnih priprema", "uvrstiti naknadnu toplinsku obradu zavara"], "correct": [1]},
         {"q": "Tijekom primarnog postupka proizvodnje Al", "options": ["najvažnija je sirovina hematit", "čisti hidratizirani aluminijev oksid se proizvodi iz boksita primjenom Bayerovog postupka", "aluminij se izdvaja iz aluminijskog oksida primjenom ugljika kao reducirajuće tvari", "aluminij se rastvara u rastaljenu talinu ili raspada u Al i O primjenom elektrolize"], "correct": [1, 3]},
-        {"q": "Zavarljivost raznorodnih spojeva između ugljičnog i nehrđajućeg čelika ovisi o:", "options": ["sastavima osnovnog materijala", "razini ugljika u osnovnom materijalu", "sastavu dodatnog materijala", "omjeru miješanja Module 2 - Materials and their behaviour during welding Answer Answer Answer Answer Answer Answer Answer Answer Question Nº Question Nº 1 2 3 4 1 2 3 4 1 (312) 13 (11282) 2 (315) 14 (437) 3 (1586) 15 (411) 4 (255) 16 (23562) 5 (318) 17 (16053) 6 (349) 18 (1284) 7 (11267) 19 (1290) 8 (1475) 20 (21584) 9 (393) 21 (16924) 10 (1481) 22 (1300) 11 (16017) 23 (1305) 12 (13063) Module 2 - Materials and their behaviour during welding Subject: 2.1 - Manufacture and designation of steels"], "correct": [0, 2, 3]},
+        {"q": "Zavarljivost raznorodnih spojeva između ugljičnog i nehrđajućeg čelika ovisi o:", "options": ["sastavima osnovnog materijala", "razini ugljika u osnovnom materijalu", "sastavu dodatnog materijala", "omjeru miješanja"], "correct": [0, 2, 3]},
         {"q": "Koji se element(i) može koristiti u svrhu dezoksidacije u MAG zavarivanju čelika?", "options": ["Mn", "Si", "Al", "W"], "correct": [0, 1, 2]},
         {"q": "Materijal koji ima visok koeficijent otvrdnuća:", "options": ["pretrpjet će veliku deformaciju prije loma.", "pokazat će značajnu usmjerenost u mehaničkim svojstvima u žarenom stanju", "ima tendenciju da bude manje osjetljiv na brze stope hlađenja do kojih dolazi tijekom ciklusa zavarivanja", "ima visoku sposobnost povećanja čvrstoće plastičnom deformacijom."], "correct": [3]},
         {"q": "Ugljik u željezu je prisutan kao:", "options": ["međuprostorni legirajući element", "čvrsta otopina ograničene topljivosti", "supstitucijski legirajući element", "potpuna topljivost čvrste čvrste otopine"], "correct": [0]},
@@ -540,7 +554,7 @@
         {"q": "Što može uzrokovati poroznost kod zavarivanja mesinga?", "options": ["Otapanje dušika u metalu šava", "Otapanje vodika u metalu šava", "Cink isparava zbog niske točke vrenja", "Nedovoljno titana u metalu zavara"], "correct": [2]},
         {"q": "Kod zavarivanja čistog nikla TIG-om, koji će od sljedećih koraka vjerojatno smanjiti poroznost?", "options": ["Korištenje metala za punjenje koji sadrži mali postotak titana", "Provjerite jesu li ploče savršeno čiste prije zavarivanja", "Korištenje pažljivo kontroliranog predgrijanja", "Pažljiv odabir tehnike i zaštitnog plina"], "correct": [0, 1, 3]},
         {"q": "Što uzrokuje gubitak čvrstoće zavarenih spojeva od legure aluminija?", "options": ["Žarenje hladno obrađene strukture", "Pretjerano staranje precipitata", "Rast zrna u ZUT", "Kao lijevana struktura u metalu šava"], "correct": [0, 2, 3]},
-        {"q": "Za spajanje unutarnje obložene cijevi bez pristupa za zavarivanje iznutra:", "options": ["koristite materijale za punjenje koji odgovaraju osnovnom materijalu nosača", "morate koristiti materijale za punjenje na bazi Ni", "U većini slučajeva potrebno je koristiti visokolegirani materijal za punjenje preko cijele debljine stijenke cijevi", "Zbog opasnosti od pucanja takvi spojevi nisu prihvatljivi ¸3 Module 2 - Materials and their behaviour during welding Answer Answer Answer Answer Answer Answer Answer Answer Question Nº Question Nº 1 2 3 4 1 2 3 4 1 (232) 13 (401) 2 (11215) 14 (420) 3 (246) 15 (413) 4 (262) 16 (21897) 5 (11231) 17 (16052) 6 (444) 18 (1282) 7 (1228) 19 (15140) 8 (1477) 20 (16260) 9 (392) 21 (16261) 10 (1250) 22 (269) 11 (16017) 23 (1340) 12 (22158)"], "correct": [2]},
+        {"q": "Za spajanje unutarnje obložene cijevi bez pristupa za zavarivanje iznutra:", "options": ["koristite materijale za punjenje koji odgovaraju osnovnom materijalu nosača", "morate koristiti materijale za punjenje na bazi Ni", "U većini slučajeva potrebno je koristiti visokolegirani materijal za punjenje preko cijele debljine stijenke cijevi", "Zbog opasnosti od pucanja takvi spojevi nisu prihvatljivi"], "correct": [2]},
         {"q": "Udio δ-ferita u metalu zavara kod aust.čel. koji povoljno djeluje na sprječ. toplih pukotina:", "options": ["0-2%", "2-12%", "5-10%", "10-25%"], "correct": [1]},
         {"q": "Dendritna i Witmanstetenova (beningna) struktura nastaje:", "options": ["gnječenjem", "lijevanjem", "toplinskom obradom", "zavarivanjem"], "correct": [1, 3]},
         {"q": "Smirivanje čelika je:", "options": ["postupak žarenja", "postupak vezanja N2 i O2", "postupak plastičnog deformiranja"], "correct": [1], "note": "Komentar iz zbirke: Vrši se pomoću Mn Si Al"},
@@ -839,13 +853,6 @@
         {"q": "Kod kojeg osnovnog mehanizma trošenja početak trošenja se ne javlja na mjestu kontakta funkcionalnih dijelova", "options": ["abrazije", "adhezije", "umora površine", "tribokorozije"], "correct": [2], "note": "Komentar iz zbirke: ne | ne | ispod površine uslijed valjanja jednog tijela preko ili po drugom"},
         {"q": "Martenzitni PH čelici imaju:", "options": ["1-10% Cr i 2-3% Ni", "14-17% Cr i 4-6% Ni", "10-12% Cr i 10-12% Ni", "12-13% Cr i 8-9% Ni"], "correct": [1], "note": "Komentar iz zbirke: 0,05% C ; 14...17% Cr ; 4...6% Ni ; 3% Cu ; (do 0,4% Nb)"},
         {"q": "Koji se materijal može primjeniti za temperature -50 ºC", "options": ["sivi lijev", "visokougljični čelici", "sitnozrnati čelici", "feritični nerđajući čelici"], "correct": [2], "note": "Komentar iz zbirke: ima smisla ako kažemo da za rad na visoke temp. Ide obrnuto (grupo zrno)???"},
-        {"q": "Annealing of a steel weld is a thermal procedure applied in order to:", "options": ["partly restore the grain structure of the metal to its state prior to welding", "keep its structure, but change its mechanical properties.", "Change its structure, thus improving its mechanical properties.", "fully restore the structure of the metal to its state prior to welding"], "correct": [0, 2]},
-        {"q": "A material is described as conditionally weldable:", "options": ["when, in addition to common welding procedures, preheating, thermal treatment, controlled heat input etc. are needed", "when the material distorts strongly during welding", "when the use of special welding procedures is required", "as a rule, all materials are readily weldable"], "correct": [0, 2]},
-        {"q": "Welded components operating at cryogenic temperatures can be constructed from:", "options": ["Low-alloy creep-resistant steel.", "Martenzitic 9 and 12% modified chromium steel.", "Structural carbon steel with a carbon content over 0,2%.", "Depending on the lowest operating temperature, CrNi austenitic steels, duplex and superduplex steels, 3 and 9% Ni steels, or low-carbon low-alloy structural steels."], "correct": [3]},
-        {"q": "Coating thickness of hot dip zinc coating is about:", "options": ["1 micron", "60 microns", "300 microns", "5 microns"], "correct": [1]},
-        {"q": "How can spherical graphite be formed in cast iron?", "options": ["By adding Si", "By alloying with aluminium", "By adding Mg + Ce", "By fast cooling during solidification"], "correct": [2]},
-        {"q": "A material that has a high work hardening coefficient", "options": ["will undergo large deformation prior to fracture.", "will display significant directionality in mechanical properties in the annealed condition", "tends to be less sensitive to fast cooling rates experienced during the weld cycle", "has a high capacity to increase its strength by plastic deformation."], "correct": [3]},
-        {"q": "Carbon in iron is present as", "options": ["an interstitial alloying element", "a limited solubility solid solution", "a substitutional alloying element", "complete solid solubility solid solution"], "correct": [0]},
         {"q": "Repeated cyclical rubbing between two surfaces is known as", "options": ["Fatigue", "Fretting", "Vibration", "Friction"], "correct": [1]},
         {"q": "Nitriding is good protection against:", "options": ["surface fatigue", "abrasion", "erosion", "adhesion"], "correct": [1, 2]},
         {"q": "Koji od navedenih elemenata ima najbolji utjecaj na prokaljivost", "options": ["Cr", "Mn", "Al", "Cu"], "correct": [0]},
@@ -871,8 +878,8 @@
         {"q": "Čime se provodi dezoksidacija nesmirenoga čelika", "options": ["Ca, Si, Al", "CO2, CaO", "Mn i Mo", "P i S"], "correct": [0]},
         {"q": "Epruveta za vlačni pokus okrugla ima promjer", "options": ["20 mm", "10 mm", "5 mm", "nije definirano"], "correct": [0, 1, 2]},
         {"q": "Dužine i površine presjeka epruvete smije biti", "options": ["Lo= 5,65* √S0", "Lo= 11,3* √S0", "nije definirano", "smije biti razmjerno ako nije moguće izraditi standardnu epruvetu"], "correct": [0, 1, 3]},
-        {"q": "Dubine epruvete V", "options": ["1mm", "2mm", "3mm", "4mm"], "correct": [1]},
-        {"q": "Dubine epruvete U", "options": ["1mm", "2mm", "3mm", "4mm"], "correct": [2]},
+        {"q": "Charpyjeva epruveta s V-zarezom (ispitivanje udarnog rada loma): dubina zareza iznosi", "options": ["1 mm", "2 mm", "3 mm", "4 mm"], "correct": [1], "note": "Prema zbirci: V-zarez 2 mm (standardna epruveta 10×10×55 mm)"},
+        {"q": "Charpyjeva epruveta s U-zarezom (ispitivanje udarnog rada loma): dubina zareza iznosi", "options": ["1 mm", "2 mm", "3 mm", "4 mm"], "correct": [2], "note": "Prema zbirci: U-zarez 3 mm"},
         {"q": "Veze između atoma mogu biti", "options": ["ionske", "kovaletne", "metalne", "dipolne", "mješovite"], "correct": [0, 1, 2]},
         {"q": "Kationi imaju", "options": ["pozitivan naboj", "negativan naboj", "veći polumjer od izvornoga atoma", "manji polumjer od izvornoga atoma"], "correct": [0, 3]},
         {"q": "S porastom stupnja deformacije raste", "options": ["čvrstoća", "granica razvlačenja", "tvrdoća"], "correct": [0, 1, 2]},
@@ -1061,11 +1068,41 @@
         showScreen('sub-menu-screen');
     }
 
+    // Miješanje opcija: raspored se svaki put promijeni (točni odgovori ne ostaju na istom slovu)
+    function lastOrderGet(key) {
+        try { return JSON.parse(localStorage.getItem('iwe_ord_' + key)); } catch (e) { return null; }
+    }
+    function lastOrderSet(key, val) {
+        try { localStorage.setItem('iwe_ord_' + key, JSON.stringify(val)); } catch (e) {}
+    }
+    function shuffleOptions(q) {
+        const n = q.options.length;
+        const key = q.q.slice(0, 60) + '|' + n;
+        const prev = lastOrderGet(key);            // prethodni poredak (stari indeksi po novim mjestima)
+        const origCorrect = new Set(q.correct);
+        const idx = [...Array(n).keys()];
+        let perm, tries = 0;
+        do {
+            perm = shuffle(idx.slice());
+            tries++;
+            // zahtjev: prvi točan odgovor mora biti na drugom mjestu nego prošli put (i nikad na istom kao u izvorniku ako ima izbora)
+            const newPos = perm.findIndex(o => origCorrect.has(o));
+            const prevPos = prev ? prev.findIndex(o => origCorrect.has(o)) : -1;
+            if (newPos !== prevPos || n < 2) break;
+        } while (tries < 50);
+        lastOrderSet(key, perm);
+        const newOptions = perm.map(o => q.options[o]);
+        const newCorrect = perm.map((o, i) => origCorrect.has(o) ? i : -1).filter(i => i >= 0);
+        q.options = newOptions;
+        q.correct = newCorrect;
+    }
+
     function startQuiz(limit) {
         let shuffledAll = JSON.parse(JSON.stringify(activeQuestions));
         shuffle(shuffledAll);
         
         questions = shuffledAll.slice(0, Math.min(limit, shuffledAll.length));
+        questions.forEach(shuffleOptions);
         currentSessionQuestions = questions;
         
         currentIndex = 0;
@@ -1089,7 +1126,12 @@
         showReviewScreen(currentSessionQuestions, "Pregled pitanja i točnih odgovora iz ovog kruga");
     }
 
-    function showReviewScreen(questionsArray, titleText) {
+    function openReviewMistakes() {
+        const bad = currentSessionQuestions.filter(q => q.result && q.result !== 'correct');
+        showReviewScreen(bad, `Pogrešni, djelomični i preskočeni odgovori (${bad.length})`, true);
+    }
+
+    function showReviewScreen(questionsArray, titleText, withUser) {
         showScreen('review-screen');
 
         document.getElementById('review-title').innerText = titleText;
@@ -1104,15 +1146,25 @@
             title.className = 'review-q-title';
             title.innerText = `${idx + 1}. ${q.q}`;
             card.appendChild(title);
+            if (withUser) {
+                const st = document.createElement('div');
+                st.style.cssText = 'font-size:0.85rem;margin-bottom:8px;opacity:0.9;';
+                st.innerText = {partial: '◐ Djelomično točno', voided: '⊘ Poništeno (0 bodova)', skipped: '⏭ Preskočeno'}[q.result] || '✗ Netočno (−1)';
+                card.appendChild(st);
+            }
 
             q.options.forEach((opt, optIdx) => {
                 const optDiv = document.createElement('div');
                 optDiv.className = 'review-opt';
                 
                 let isCorrectAns = q.correct.includes(optIdx);
+                const picked = withUser && (q.userSel || []).includes(optIdx);
                 if (isCorrectAns) {
                     optDiv.classList.add('is-correct');
-                    optDiv.innerText = `✓ ${opt} (Točan odgovor)`;
+                    optDiv.innerText = `✓ ${opt} (Točan odgovor)` + (withUser ? (picked ? ' – ti si označio/la' : ' – PROPUŠTENO') : '');
+                } else if (picked) {
+                    optDiv.classList.add('is-wrong-pick');
+                    optDiv.innerText = `✗ ${opt} (Tvoj krivi odabir)`;
                 } else {
                     optDiv.innerText = `• ${opt}`;
                 }
@@ -1191,6 +1243,8 @@
     function skipQuestion() {
         const q = questions[currentIndex];
         const correctSet = new Set(q.correct);
+        q.userSel = [];
+        q.result = 'skipped';
 
         q.options.forEach((opt, index) => {
             const itemElement = document.getElementById(`opt-item-${index}`);
@@ -1209,7 +1263,7 @@
 
         const feedback = document.getElementById('feedback');
         feedback.style.display = 'block';
-        feedback.innerText = `Pitanje je preskočeno (+0.00 bodova).`;
+        feedback.innerText = `Pitanje je preskočeno (0.00 bodova).`;
         feedback.className = 'feedback skipped';
         appendNote(feedback, q);
 
@@ -1233,25 +1287,19 @@
 
         let points = 0;
         let totalCorrectNeeded = q.correct.length;
-        let hasWrongSelection = false;
+        let nRight = selectedIndices.filter(idx => correctSet.has(idx)).length;
+        let nWrong = selectedIndices.length - nRight;
+        let hasWrongSelection = nWrong > 0;
 
-        selectedIndices.forEach(idx => {
-            if (!correctSet.has(idx)) {
-                hasWrongSelection = true;
-            }
-        });
-
-        if (hasWrongSelection) {
-            points = -1;
-        } else {
-            selectedIndices.forEach(idx => {
-                if (correctSet.has(idx)) {
-                    points += (1 / totalCorrectNeeded);
-                }
-            });
-        }
+        // Pravila: samo točni -> (točni/ukupno točnih); koliko točnih toliko netočnih -> 0 (poništeno);
+        // više netočnih od točnih -> -1; više točnih od netočnih -> (točni - netočni)/ukupno točnih
+        if (nWrong === 0) points = nRight / totalCorrectNeeded;
+        else if (nWrong > nRight) points = -1;
+        else if (nWrong === nRight) points = 0;
+        else points = (nRight - nWrong) / totalCorrectNeeded;
 
         score += points;
+        q.userSel = selectedIndices.slice();
 
         q.options.forEach((opt, index) => {
             const itemElement = document.getElementById(`opt-item-${index}`);
@@ -1280,17 +1328,23 @@
         const feedback = document.getElementById('feedback');
         feedback.style.display = 'block';
         
-        let isTotallyCorrect = !hasWrongSelection && selectedSet.size === correctSet.size && [...selectedSet].every(val => correctSet.has(val));
-
+        let isTotallyCorrect = nWrong === 0 && nRight === totalCorrectNeeded;
         if (isTotallyCorrect) {
+            q.result = 'correct';
             feedback.innerText = `Potpuno točno! Osvojeno bodova: +${points.toFixed(2)}`;
             feedback.className = 'feedback correct';
-        } else if (!hasWrongSelection && selectedIndices.length < totalCorrectNeeded) {
-            feedback.innerText = `Djelomično točno! Nisi označio/la sve točne odgovore. Bodovi: +${points.toFixed(2)}`;
+        } else if (points < 0) {
+            q.result = 'wrong';
+            feedback.innerText = `Netočno! Više krivih nego točnih odabira. Bodovi: ${points.toFixed(2)}`;
+            feedback.className = 'feedback incorrect';
+        } else if (points === 0) {
+            q.result = 'voided';
+            feedback.innerText = `Poništeno: jednako točnih i netočnih odabira. Bodovi: 0.00`;
             feedback.className = 'feedback partial';
         } else {
-            feedback.innerText = `Netočno! Odabran je krivi odgovor. Bodovi: ${points.toFixed(2)}`;
-            feedback.className = 'feedback incorrect';
+            q.result = 'partial';
+            feedback.innerText = `Djelomično točno! Nisi označio/la sve točne odgovore${nWrong ? ' (a ima i krivih)' : ''}. Bodovi: +${points.toFixed(2)}`;
+            feedback.className = 'feedback partial';
         }
         appendNote(feedback, q);
 
@@ -1309,13 +1363,35 @@
 
     function showResults() {
         showScreen('results-screen');
-        
-        let maxPossibleScore = questions.length;
-        let percentage = (score / maxPossibleScore) * 100;
-        if (percentage < 0) percentage = 0;
 
-        document.getElementById('final-score').innerText = `Ukupno bodova: ${score.toFixed(2)} / ${maxPossibleScore}`;
-        document.getElementById('percentage-display').innerText = `Postotak uspješnosti: ${percentage.toFixed(1)}%`;
+        const maxPossibleScore = questions.length;
+        const cnt = {correct: 0, partial: 0, voided: 0, wrong: 0, skipped: 0};
+        questions.forEach(q => { cnt[q.result || 'skipped']++; });
+        const rawPct = (score / maxPossibleScore) * 100;
+        const percentage = Math.max(0, rawPct);
+        const pass = rawPct >= 60;
+        const fmt = x => x.toFixed(2).replace('.', ',');
+
+        document.getElementById('final-score').innerText = `Ukupno bodova: ${fmt(score)} / ${maxPossibleScore}`;
+        document.getElementById('percentage-display').innerText = `Postotak uspješnosti: ${rawPct.toFixed(1).replace('.', ',')} %`;
+
+        const badge = document.getElementById('pass-badge');
+        badge.innerText = pass ? '✅ PROLAZ (prag 60 %)' : '❌ Ispod praga (prag 60 %)';
+        badge.style.background = pass ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)';
+        badge.style.color = pass ? '#22c55e' : '#ef4444';
+        const bar = document.getElementById('res-bar');
+        bar.style.width = Math.min(100, percentage) + '%';
+        bar.style.background = pass ? '#22c55e' : '#ef4444';
+
+        const tiles = [
+            [cnt.correct, 'potpuno točno (+1)', '#22c55e'],
+            [cnt.partial, 'djelomično (dio boda)', '#f59e0b'],
+            [cnt.voided, 'poništeno (0)', '#94a3b8'],
+            [cnt.wrong, 'netočno (−1)', '#ef4444'],
+            [cnt.skipped, 'bez odgovora (0)', '#64748b']
+        ];
+        document.getElementById('res-tiles').innerHTML = tiles.map(x =>
+            `<div style="background:#0f172a;border:1px solid var(--border);border-radius:8px;padding:10px;"><div style="font-size:1.6rem;font-weight:700;color:${x[2]}">${x[0]}</div><div style="font-size:0.8rem;opacity:0.85">${x[1]}</div></div>`).join('');
     }
 
     window.onload = goToMainMenu;
