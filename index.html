@@ -276,6 +276,100 @@
         .results-screen {
             text-align: center;
         }
+        .sticky-nav {
+            position: sticky;
+            bottom: -30px;
+            margin: 20px -30px -30px -30px;
+            padding: 10px 12px;
+            background-color: rgba(15, 23, 42, 0.97);
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+        .sticky-nav .btn {
+            flex: 1;
+            padding: 10px 6px;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        .result-review {
+            text-align: left;
+            margin-top: 25px;
+        }
+        .result-review h3 {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px 6px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background-color: #0f172a;
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .tab.active {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: #ffffff;
+        }
+        .rv-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+        .rv-badge {
+            padding: 3px 8px;
+            border-radius: 5px;
+            white-space: nowrap;
+        }
+        .rv-badge.correct { background-color: rgba(34, 197, 94, 0.2); color: var(--success); }
+        .rv-badge.partial { background-color: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .rv-badge.wrong { background-color: rgba(239, 68, 68, 0.2); color: var(--error); }
+        .rv-badge.void { background-color: rgba(168, 85, 247, 0.2); color: #d8b4fe; }
+        .rv-badge.skipped { background-color: rgba(100, 116, 139, 0.25); color: #cbd5e1; }
+        .rv-opt {
+            padding: 9px 11px;
+            margin: 6px 0;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background-color: #0f172a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .rv-opt.ok { border-color: var(--success); background-color: rgba(34, 197, 94, 0.15); }
+        .rv-opt.missed { border-color: var(--warning); background-color: rgba(245, 158, 11, 0.12); }
+        .rv-opt.bad { border-color: var(--error); background-color: rgba(239, 68, 68, 0.15); }
+        .rv-tag {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 7px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        .rv-opt.ok .rv-tag { background-color: var(--success); color: #052e16; }
+        .rv-opt.missed .rv-tag { background-color: var(--warning); color: #451a03; }
+        .rv-opt.bad .rv-tag { background-color: var(--error); color: #ffffff; }
+        .rv-empty {
+            text-align: center;
+            color: #94a3b8;
+            padding: 20px;
+        }
         .results-screen h2 {
             font-size: 2rem;
             margin-bottom: 10px;
@@ -379,9 +473,21 @@
         <p id="percentage-display"></p>
         <div class="stats-grid" id="stats-grid"></div>
         <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
-            <button class="btn btn-secondary" onclick="openReviewCurrentSession()">📝 Pregled pitanja i točnih odgovora iz ovog kruga</button>
             <button class="btn" style="width: 100%;" onclick="goToSubMenu()">Nazad na meni kviza</button>
             <button class="btn btn-cancel" style="width: 100%;" onclick="goToMainMenu()">Glavni izbornik (Odabir ispita)</button>
+        </div>
+        <div class="result-review">
+            <h3>📝 Pregled odgovora iz ovog kruga</h3>
+            <div class="tabs">
+                <button class="tab active" id="tab-mistakes" onclick="renderResultList('mistakes')">❌ Za ponoviti</button>
+                <button class="tab" id="tab-all" onclick="renderResultList('all')">📋 Sva pitanja</button>
+            </div>
+            <div id="result-list"></div>
+        </div>
+        <div class="sticky-nav">
+            <button class="btn btn-secondary" onclick="scrollToTop()">⬆ Na vrh</button>
+            <button class="btn" onclick="goToSubMenu()">⬅ Meni kviza</button>
+            <button class="btn btn-cancel" onclick="goToMainMenu()">🏠 Početni meni</button>
         </div>
     </div>
 
@@ -389,7 +495,11 @@
     <div id="review-screen" class="review-screen">
         <h2 id="review-title" style="text-align: center; margin-bottom: 20px;">Pregled pitanja</h2>
         <div id="review-container"></div>
-        <button class="btn" onclick="goToSubMenu()" style="margin-top: 20px; width: 100%;">Nazad na meni kviza</button>
+        <div class="sticky-nav">
+            <button class="btn btn-secondary" onclick="scrollToTop()">⬆ Na vrh</button>
+            <button class="btn" onclick="goToSubMenu()">⬅ Meni kviza</button>
+            <button class="btn btn-cancel" onclick="goToMainMenu()">🏠 Početni meni</button>
+        </div>
     </div>
 </div>
 
@@ -1293,15 +1403,6 @@
         { q: "Kod kojeg osnovnog mehanizma trošenja početak trošenja se ne javlja na mjestu kontakta funkcionalnih dijelova", options: ["abrazije", "adhezije", "umora površine", "tribokorozije"], correct: [2], note: "Kod umora površine pukotine počinju ispod površine kontakta, gdje su smična naprezanja najveća. Abrazija, adhezija i tribokorozija počinju na samoj površini dodira." },
         { q: "Martenzitni PH čelici imaju:", options: ["1-10% Cr i 2-3% Ni", "14-17% Cr i 4-6% Ni", "10-12% Cr i 10-12% Ni", "12-13% Cr i 8-9% Ni"], correct: [1], note: "Martenzitni PH čelici (npr. 17-4 PH) imaju oko 14–17 % Cr, 4–6 % Ni, oko 3 % Cu i malo C. Bakar i Nb se pri starenju izlučuju i očvrsnu martenzit." },
         { q: "Koji se materijal može primjeniti za temperature -50 ºC", options: ["sivi lijev", "visokougljični čelici", "sitnozrnati čelici", "feritični nerđajući čelici"], correct: [2], note: "Za oko −50 °C koriste se sitnozrnati (mikrolegirani) čelici, jer sitno zrno snizuje prijelaznu temperaturu. Sivi lijev, visokougljični i feritni nehrđajući čelici na tim su temperaturama krhki." },
-        { q: "Annealing of a steel weld is a thermal procedure applied in order to:", options: ["partly restore the grain structure of the metal to its state prior to welding", "keep its structure, but change its mechanical properties.", "Change its structure, thus improving its mechanical properties.", "fully restore the structure of the metal to its state prior to welding"], correct: [0, 2], note: "Engleska verzija pitanja s međunarodnog ispita: popuštanje (žarenje) zavara djelomično vraća strukturu i mijenja je tako da se poboljšaju mehanička svojstva. Potpuno vraćanje u početno stanje nije moguće." },
-        { q: "A material is described as conditionally weldable:", options: ["when, in addition to common welding procedures, preheating, thermal treatment, controlled heat input etc. are needed", "when the material distorts strongly during welding", "when the use of special welding procedures is required", "as a rule, all materials are readily weldable"], correct: [0, 2], note: "Engleska verzija: uvjetno zavarljiv materijal traži uz uobičajene postupke dodatne mjere (predgrijavanje, toplinsku obradu, kontrolirani unos topline) ili posebne postupke zavarivanja." },
-        { q: "Welded components operating at cryogenic temperatures can be constructed from:", options: ["Low-alloy creep-resistant steel.", "Martenzitic 9 and 12% modified chromium steel.", "Structural carbon steel with a carbon content over 0,2%.", "Depending on the lowest operating temperature, CrNi austenitic steels, duplex and superduplex steels, 3 and 9% Ni steels, or low-carbon low-alloy structural steels."], correct: [3], note: "Engleska verzija: za kriogenske temperature, ovisno o najnižoj radnoj temperaturi, koriste se austenitni CrNi čelici, duplex, čelici s 3 i 9 % Ni ili niskougljični niskolegirani konstrukcijski čelici." },
-        { q: "Coating thickness of hot dip zinc coating is about:", options: ["1 micron", "60 microns", "300 microns", "5 microns"], correct: [1], note: "Engleska verzija: vruće pocinčani sloj debeo je oko 60 µm (tipično 50–100 µm)." },
-        { q: "How can spherical graphite be formed in cast iron?", options: ["By adding Si", "By alloying with aluminium", "By adding Mg + Ce", "By fast cooling during solidification"], correct: [2], note: "Engleska verzija: kuglasti grafit dobiva se dodavanjem Mg (i Ce) u talinu (globularizacija)." },
-        { q: "A material that has a high work hardening coefficient", options: ["will undergo large deformation prior to fracture.", "will display significant directionality in mechanical properties in the annealed condition", "tends to be less sensitive to fast cooling rates experienced during the weld cycle", "has a high capacity to increase its strength by plastic deformation."], correct: [3], note: "Engleska verzija: visok koeficijent deformacijskog očvršćivanja znači veliku sposobnost povećanja čvrstoće plastičnom deformacijom." },
-        { q: "Carbon in iron is present as", options: ["an interstitial alloying element", "a limited solubility solid solution", "a substitutional alloying element", "complete solid solubility solid solution"], correct: [0], note: "Engleska verzija: ugljik je u željezu intersticijski (međuprostorni) element." },
-        { q: "Repeated cyclical rubbing between two surfaces is known as", options: ["Fatigue", "Fretting", "Vibration", "Friction"], correct: [1], note: "Engleska verzija: fretting je trošenje pri ponavljanom malom cikličkom pomaku dviju površina u dodiru." },
-        { q: "Nitriding is good protection against:", options: ["surface fatigue", "abrasion", "erosion", "adhesion"], correct: [0, 3], note: "Ispravljeno (kao i u hrvatskoj verziji): nitriranje daje tvrd sloj s tlačnim napetostima, pa štiti od umora površine i adhezije. Za abraziju i eroziju tanak nitrirani sloj nije dobar izbor." },
         { q: "Koji od navedenih elemenata ima najbolji utjecaj na prokaljivost", options: ["Cr", "Mn", "Al", "Cu"], correct: [0], note: "Ključ iz zbirke je Cr. Krom snažno povećava prokaljivost, a jak je i Mn, pa se ovo pitanje smatra nesigurnim. Al i Cu imaju mali utjecaj." },
         { q: "Dodavanje legirnih elemenata niskolegiranim feritnim čelicima općenito", options: ["povećava duktilnost", "smanjuje prokaljivost", "povećava prokaljivost", "smanjuje zavarljivost"], correct: [2, 3], note: "Ispravljeno: legirni elementi niskolegiranih čelika povećavaju prokaljivost (TTT krivulje idu udesno), a time i Cekv, pa smanjuju zavarljivost. Zbirka je ovdje navodila samo zavarljivost, a u drugoj verziji pitanja oba odgovora." },
         { q: "Razlozi zbog kojih je višeslojni zavar obično žilaviji od jednoslojnog su", options: ["stvaranje izvjesne količine martenzita", "toplina jednog prolaza normalizira prethodni", "toplina jednog prolaza usitnjuje zrna prethodnog prolaza", "toplina jednog prolaza povećava zrna prethodnog prolaza"], correct: [1, 2], note: "Svaki sljedeći prolaz zagrijava prethodni iznad A3 i normalizira ga, odnosno usitnjava zrno, pa je višeslojni zavar žilaviji. Martenzit i grubo zrno smanjuju žilavost." },
@@ -1329,7 +1430,7 @@
         { q: "Dubine epruvete U", options: ["1mm", "2mm", "3mm", "4mm"], correct: [2], note: "Ključ iz zbirke: epruveta s U-zarezom ima dubinu zareza 3 mm (stara DVM epruveta). ⚠️ Prema ISO 148 U-zarez je dubok 2 ili 5 mm." },
         { q: "Veze između atoma mogu biti", options: ["ionske", "kovalentne", "metalne", "magnetske"], correct: [0, 1, 2], note: "Primarne veze između atoma su ionska, kovalentna i metalna; sekundarne su Van der Waalsove (dipolne). Magnetska veza ne postoji." },
         { q: "Kationi imaju", options: ["pozitivan naboj", "negativan naboj", "veći polumjer od izvornoga atoma", "manji polumjer od izvornoga atoma"], correct: [0, 3], note: "Kation nastaje kad atom otpusti elektrone: ima pozitivan naboj i manji polumjer od neutralnog atoma, jer preostale elektrone jezgra jače privlači." },
-        { q: "S porastom stupnja deformacije raste", options: ["čvrstoća", "granica razvlačenja", "tvrdoća", "istezljivost"], correct: [0, 1, 2], note: "Hladnom deformacijom raste gustoća dislokacija, pa rastu čvrstoća, granica razvlačenja i tvrdoća, a pada istezljivost." },
+        { q: "Što se događa kad se metal hladno (plastično) deformira, npr. hladnim valjanjem ili vučenjem? S porastom stupnja hladne deformacije raste:", options: ["čvrstoća", "granica razvlačenja", "tvrdoća", "istezljivost"], correct: [0, 1, 2], note: "Hladnom deformacijom raste gustoća dislokacija, pa rastu čvrstoća, granica razvlačenja i tvrdoća, a pada istezljivost." },
         { q: "S porastom stupnja deformacije pada", options: ["istezljivost", "kontrakcija ili suženje", "udarna žilavost", "modul elastičnosti"], correct: [0, 1, 2], note: "Ispravljeno: hladnom deformacijom padaju istezljivost, kontrakcija i udarna žilavost. Modul elastičnosti E ovisi o vezama među atomima i praktički se ne mijenja deformacijom." },
         { q: "Koliko ugljika može otopiti austenit max", options: ["0,025", "0,8", "2,03", "4,3"], correct: [2], note: "Austenit može otopiti najviše 2,03 % C (na 1147 °C). Vrijednosti 0,8 % i 4,3 % su eutektoid i eutektik, a 0,025 % je ferit." },
         { q: "Koliko ugljika može otopiti ferit max", options: ["0,025", "0,8", "2,03", "4,3"], correct: [0], note: "Ferit (α-Fe, BCC) može otopiti najviše oko 0,025 % C (na 723 °C), a na sobnoj temperaturi gotovo ništa." },
@@ -1724,6 +1825,9 @@
         feedback.innerText = `Pitanje je preskočeno (+0.00 bodova).`;
         feedback.className = 'feedback skipped';
         stats.skipped++;
+        q.userSel = [];
+        q.outcome = 'skipped';
+        q.pts = 0;
         appendNote(feedback, q);
 
         const actionButtons = document.getElementById('action-buttons');
@@ -1771,6 +1875,9 @@
         }
 
         score += points;
+        q.userSel = selectedIndices;
+        q.outcome = outcome;
+        q.pts = points;
 
         q.options.forEach((opt, index) => {
             const itemElement = document.getElementById(`opt-item-${index}`);
@@ -1850,6 +1957,90 @@
         });
     }
 
+    function scrollToTop() {
+        document.querySelector('.container').scrollTop = 0;
+        window.scrollTo(0, 0);
+    }
+
+    const OUTCOME_LABEL = {
+        correct: '✓ Točno',
+        partial: '◐ Djelomično',
+        wrong: '✗ Netočno',
+        void: '⊘ Poništeno',
+        skipped: '⏭ Preskočeno'
+    };
+
+    function renderResultList(mode) {
+        document.getElementById('tab-mistakes').classList.toggle('active', mode === 'mistakes');
+        document.getElementById('tab-all').classList.toggle('active', mode === 'all');
+
+        const list = document.getElementById('result-list');
+        list.innerHTML = '';
+
+        const items = questions
+            .map((q, idx) => ({ q, idx }))
+            .filter(({ q }) => q.outcome && (mode === 'all' || q.outcome !== 'correct'));
+
+        const mistakesCount = questions.filter(q => q.outcome && q.outcome !== 'correct').length;
+        document.getElementById('tab-mistakes').innerText = `❌ Za ponoviti (${mistakesCount})`;
+        document.getElementById('tab-all').innerText = `📋 Sva pitanja (${questions.filter(q => q.outcome).length})`;
+
+        if (items.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'rv-empty';
+            empty.innerText = 'Sve točno, nema pitanja za ponoviti! 🎉';
+            list.appendChild(empty);
+            return;
+        }
+
+        items.forEach(({ q, idx }) => {
+            const card = document.createElement('div');
+            card.className = 'review-card';
+
+            const head = document.createElement('div');
+            head.className = 'rv-head';
+            const num = document.createElement('span');
+            num.innerText = `Pitanje ${idx + 1}`;
+            const badge = document.createElement('span');
+            badge.className = `rv-badge ${q.outcome}`;
+            const sign = q.pts > 0 ? '+' : '';
+            badge.innerText = `${OUTCOME_LABEL[q.outcome]} (${sign}${q.pts.toFixed(2)})`;
+            head.appendChild(num);
+            head.appendChild(badge);
+            card.appendChild(head);
+
+            const title = document.createElement('div');
+            title.className = 'review-q-title';
+            title.innerText = q.q;
+            card.appendChild(title);
+
+            const sel = new Set(q.userSel || []);
+            q.options.forEach((opt, i) => {
+                const isC = q.correct.includes(i);
+                const isS = sel.has(i);
+                const row = document.createElement('div');
+                row.className = 'rv-opt';
+                const txt = document.createElement('span');
+                txt.innerText = opt;
+                row.appendChild(txt);
+                let tag = '';
+                if (isC && isS) { row.classList.add('ok'); tag = '✓ Tvoj odabir (točno)'; }
+                else if (isC && !isS) { row.classList.add('missed'); tag = q.outcome === 'skipped' ? '✓ Točan odgovor' : '⚠ Točno – nisi označio'; }
+                else if (!isC && isS) { row.classList.add('bad'); tag = '✗ Tvoj odabir (krivo)'; }
+                if (tag) {
+                    const t = document.createElement('span');
+                    t.className = 'rv-tag';
+                    t.innerText = tag;
+                    row.appendChild(t);
+                }
+                card.appendChild(row);
+            });
+
+            appendNote(card, q);
+            list.appendChild(card);
+        });
+    }
+
     function showResults() {
         showScreen('results-screen');
         
@@ -1860,6 +2051,7 @@
         document.getElementById('final-score').innerText = `Ukupno bodova: ${score.toFixed(2)} / ${maxPossibleScore}`;
         document.getElementById('percentage-display').innerText = `Postotak uspješnosti: ${percentage.toFixed(1)}%`;
         renderStats();
+        renderResultList('mistakes');
     }
 
     window.onload = goToMainMenu;
